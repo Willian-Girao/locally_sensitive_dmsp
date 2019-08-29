@@ -9,6 +9,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 	nodeId = sensorId;
 
 	ifstream instance_file(instanceFileName);
+
 	string str;
 
 	int line_index = 0;
@@ -52,8 +53,16 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 							y += c;
 						}
 				    }
+
+				    double dx = stod(x);
+				    double dy = stod(y);
+
+				    pair<double, double> my_xy(dx, dy);
 				    
-				    coords = make_pair<double,double>(stod(x), stod(y));
+				    my_coordinates[sensorId] = my_xy;
+
+				    cout << "MY_ID: " << nodeId << endl;
+				    cout << "MY_COORDINATES: " << my_xy.first << ", " << my_xy.second << endl << endl;
 				}
 				break;
 		}

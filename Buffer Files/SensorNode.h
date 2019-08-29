@@ -5,6 +5,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <utility>
+#include <map>
 
 using namespace std;
 
@@ -23,13 +25,15 @@ class SensorNode {
         /* Utilities */
 
     private:
-        //TODO - codes variables should all become this classes's properties.
-        int nodeId;
+        int nodeId; //Graph's node id (sensor within the network)
 
         /* Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})*/
-        pair<int, pair<double, double>> my_coordinates;
+        map<int, pair<double, double>> my_coordinates;
+
+
+        //TODO - Change this for a map of 'int' and 'pair'.
+        //TODO - 'pair' has to become a Point for the CGLA lib.
         vector<pair<int, pair<double, double>>> my_neighbors;
-        // 'pair<int, pair<double, double>>' has to become a Point for the CGLA lib.
 };
 
 #endif

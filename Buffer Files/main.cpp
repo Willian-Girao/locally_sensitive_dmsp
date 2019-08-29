@@ -15,7 +15,12 @@ using namespace std;
 int main() {	
 	string instanceFileName = "./test_instances/instance_input_test00.dat";
 
-	SensorNode nodeI(instanceFileName, 1);
+	SensorNode node0(instanceFileName, 0);
+	SensorNode node1(instanceFileName, 1);
+	SensorNode node2(instanceFileName, 2);
+	SensorNode node3(instanceFileName, 3);
+	SensorNode node4(instanceFileName, 4);
+	SensorNode node5(instanceFileName, 5);
 
 	return 0;
 }
