@@ -7,6 +7,7 @@
 #include <vector>
 #include <utility>
 #include <map>
+#include <iomanip>
 
 using namespace std;
 
@@ -29,11 +30,11 @@ class SensorNode {
 
         /* Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})*/
         map<int, pair<double, double>> my_coordinates;
-
+        vector<int> my_neighbors_ids;
 
         //TODO - Change this for a map of 'int' and 'pair'.
         //TODO - 'pair' has to become a Point for the CGLA lib.
-        vector<pair<int, pair<double, double>>> my_neighbors;
+        map<int, pair<double, double>> my_neighbors_xy;
 };
 
 #endif
