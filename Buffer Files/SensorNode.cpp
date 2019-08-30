@@ -7,7 +7,7 @@ using namespace std;
 //Constructor.
 SensorNode::SensorNode(string instanceFileName, int sensorId) {
 	//Progran execution starting now
-	ended = false;
+	endExec = false;
 
 	//Starting metrics associated variables
 	startServeTime = 0.0;
@@ -17,7 +17,6 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 	startRequestTime = 0.0;
 	endRequestTime = 0.0;
 	maxTime = 0.0;
-	endedExec = false;
 	steps = 0; //Mule has made no moves thus far
 
 	//Starting node associated variables
@@ -117,3 +116,164 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 
 //Destructor.
 SensorNode::~SensorNode() {}
+
+/* Methods - setters */
+//Node.
+void SensorNode::setNodeId(int z) {
+	nodeId = z;
+	return;
+}
+
+void SensorNode::setUnattendedNeigbors(int z) {
+	unattendedNeigbors = z;
+	return;
+}
+
+void SensorNode::setU(int z) {
+	u = z;
+	return;
+}
+
+void SensorNode::setHasBenServed(bool z) {
+	served = z;
+	return;
+}
+
+
+//Execution.
+void SensorNode::getTotalNodes(int y) {
+	totalNodes = y;
+	return;
+}
+
+void SensorNode::getParentId(int y) {
+	parentId = y;
+	return;
+}
+
+void SensorNode::getMuleStepsCountThusFar(int y) {
+	steps = y;
+	return;
+}
+
+
+//Metrics
+void SensorNode::setStartServeTime(double x) {
+	startServeTime = x;
+	return;
+}
+
+void SensorNode::setEndServeTime(double x) {
+	endServeTime = x;
+	return;
+}
+
+void SensorNode::setStartServedTime(double x) {
+	startServedTime = x;
+	return;
+}
+
+void SensorNode::setEndServedTime(double x) {
+	endServedTime = x;
+	return;
+}
+
+void SensorNode::setStartRequestTime(double x) {
+	startRequestTime = x;
+	return;
+}
+
+void SensorNode::setEndRequestTime(double x) {
+	endRequestTime = x;
+	return;
+}
+
+void SensorNode::setMaxTime(double x) {
+	maxTime = x;
+	return;
+}
+
+
+/* Methods - getters */
+
+//Utils.
+void SensorNode::pauseExec(void) {
+	int a;
+	cout << "\n - EXECUTION PAUSED...\n" << endl;
+	cin >> a;
+	return;
+}
+
+//Public.
+//Getters - Metrics
+double SensorNode::getStartServeTime(void) 
+{
+    return startServeTime;
+}
+
+double SensorNode::getEndServeTime(void) 
+{
+    return endServeTime;
+}
+
+double SensorNode::getStartServedTime(void) 
+{
+    return startServedTime;
+}
+
+double SensorNode::getEndServedTime(void) 
+{
+    return endServedTime;
+}
+
+double SensorNode::getStartRequestTime(void) 
+{
+    return startRequestTime;
+}
+
+double SensorNode::getEndRequestTime(void) 
+{
+    return endRequestTime;
+}
+
+double SensorNode::getMaxTime(void) 
+{
+    return maxTime;
+}
+
+//Getters - Node
+int SensorNode::getNodeId(void) {
+	return nodeId;
+}
+
+int SensorNode::getUnattendedNeigbors(void) {
+	return unattendedNeigbors;
+}
+
+int SensorNode::getU(void) {
+	return u;
+}
+
+bool SensorNode::checkHasBenServed(void) {
+	return served;
+}
+
+//Getters - Execution
+int SensorNode::getTotalNodes(void) {
+	return totalNodes;
+}
+
+int SensorNode::getMuleStepsCountThusFar(void) {
+	return steps;
+}
+
+int SensorNode::getParentId(void) {
+	return parentId;
+}
+
+bool SensorNode::checkIsExecEnded(void) {
+	return endExec;
+}
+
+
+//Private.

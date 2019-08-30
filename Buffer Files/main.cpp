@@ -22,5 +22,7 @@ int main() {
 	SensorNode node4(instanceFileName, 4);
 	// SensorNode node5(instanceFileName, 5);
 
+	cout << "Unattended count thus far: " << node4.getUnattendedNeigbors() << endl;
+
 	return 0;
 }
