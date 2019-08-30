@@ -6,8 +6,27 @@ using namespace std;
 
 //Constructor.
 SensorNode::SensorNode(string instanceFileName, int sensorId) {
-	nodeId = sensorId;
+	//Progran execution starting now
+	ended = false;
 
+	//Starting metrics associated variables
+	startServeTime = 0.0;
+	endServeTime = 0.0;
+	startServedTime = 0.0;
+	endServedTime = 0.0;
+	startRequestTime = 0.0;
+	endRequestTime = 0.0;
+	maxTime = 0.0;
+	endedExec = false;
+	steps = 0; //Mule has made no moves thus far
+
+	//Starting node associated variables
+	isMuleWithMe = false; //Mule has made no moves thus far
+	nodeId = sensorId; //Saving process id (aka nodeId; aka sensorId)
+	parentId = -1; //Parent thusfar is unkown
+	u = -1; //No msgs sent thus far
+
+	//Opening file containing problem's instance in the form of a graph
 	ifstream instance_file(instanceFileName);
 
 	//Parsing file lines as a vector in order to optimize the access to the neighbors information.
@@ -17,6 +36,8 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 	{
 		file_lines.push_back(line);
 	}
+
+	totalNodes = stoi(file_lines[0]); //Setting total number of nodes (1st line of the file)
 
 	//Utils local variables.
 	string str;
@@ -76,9 +97,9 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
     	pair<double, double> neighbor_coord(cx, cy);
 
     	my_neighbors_xy[stoi(split_vector[i])] = neighbor_coord;
-
-    	// my_neighbors_xy.push_back(n_i);
     }
+
+    unattendedNeigbors = stoi(split_vector[0]); //Initially all neighbors are unattended
 
     cout << "MY_ID: " << nodeId << " | " << "MY_COORDINATES: " << my_xy.first << ", " << my_xy.second << " | NEIGHBORS_LINE_INDEX: " << nodeNeighborsFileLine << endl;
     cout << "Neighbors: ";
