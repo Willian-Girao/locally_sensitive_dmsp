@@ -67,6 +67,7 @@ private:
 	bool isMuleWithMe; //Checks whether or not the mule is at the current node
 
 	//Metrics related properties.
+	//REVIEW - need to validate this
 	double startServeTime;
 	double endServeTime;
 
@@ -76,7 +77,7 @@ private:
 	double startRequestTime;
 	double endRequestTime;
 
-	double maxTime;
+	double maxTime; //?
 
 	//Debuging
 	bool debug;
@@ -84,6 +85,7 @@ private:
 
 	map<int, bool> neighbors_ACK_SERVED_buffer;
 	map<int, bool> neighbors_ACK_BEING_SERVED_buffer;
+	map<int, int> neighbors_MSG_ENUMERNODES_buffer; //Stores answers (values) received in 'MSG_ENUMERNODES'
 
 	//Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})
 	map<int, pair<double, double>> my_coordinates;
@@ -100,7 +102,7 @@ private:
 	enum tags { //Messages exchanged by mule and nodes ('u' - parent | 'v' - chield)
 		SEND_MULE, // 1# Sends the mule to another node
 		MSG_REQUEST, // 2# Requests the number of uncovered neighboors
-		MSG_ENUMERNODES, // 3# Sends a msg requiering the number of uncovered nodes of a node v in N(u)
+		MSG_ENUMERNODES, // 3# Sends a msg with the number of uncovered nodes of a node v in N(u)
 		MSG_SERVED, // 4# Informs that the node has been served by the mule
 		MSG_BEING_SERVED,  // 5# Used by a node v (in N(u)) to let all N(v) know the mule is serving it
 		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
@@ -115,12 +117,17 @@ private:
 	void muleOn1stSensorStart(void);
 	void resetNeigAckServedSentBackBuffer(void); //Resets the flags that tell us if a N(u) has sent 'ACK_SERVED' back
 	void resetNeigAckBeingServedSentBackBuffer(void);
+	void resetNeigEnumernodesBuffer(void); //Resets the number of yet to be served neighbors of each of my neighbors
 	void updateNeighborFlagAckServedReceived(void); //Marks that a neighbor have sent 'ACK_SERVED' back
+
+	bool checkAllNeighborFlagAckServedReceived(void); //Marks that a neighbor have sent 'ACK_SERVED' back
+	bool checkAllNeighborFlagAckBeingServedReceived(void); //Marks that a neighbor have sent 'ACK_BEING_SERVED' back
 
 	//Upon Receiving exchanged messages
 	void msgServedReceived(void); /* Mule is with my parent and I need to update my neighbors | Received: 'MSG_SERVED'; Sent ahead: 'MSG_BEING_SERVED') */
 	void msgAckServedReceived(void); /* My one of my N(u) have updated of its neighbors | Received: 'ACK_SERVED' */
 	void msgBeingServedReceived(void); /* One of my N(u) is in contact with the mule because one of his neighbors has it | Received: 'MSG_BEING_SERVED' | Sent back: 'ACK_BEING_SERVED' */
+	void msgAckBeingServedReceived(void); /* One of my N(v) have acknowledged that he knows that who has sent me the msg has the mule */
 
 	//Utils.
 	void pauseExec(void);

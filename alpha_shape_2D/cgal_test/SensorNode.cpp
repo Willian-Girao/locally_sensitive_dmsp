@@ -198,9 +198,48 @@ void SensorNode::resetNeigAckBeingServedSentBackBuffer(void) {
 	return;
 }
 
-void SensorNode::updateNeighborFlagAckServedReceived() {
+void SensorNode::resetNeigEnumernodesBuffer(void) {
+	for (int i = 0; i < my_neighbors_ids.size(); ++i)
+	{
+		neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]] = -1;
+	}
 
 	return;
+}
+
+void SensorNode::updateNeighborFlagAckServedReceived() {
+	neighbors_ACK_SERVED_buffer[u] = true;
+
+	return;
+}
+
+bool SensorNode::checkAllNeighborFlagAckServedReceived(void) {
+	bool allReceived = true;
+
+	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	{
+		if (neighbors_ACK_SERVED_buffer[my_neighbors_ids[i]] == false)
+		{
+			allReceived = false;
+		}
+	}
+
+	return allReceived;
+}
+
+bool SensorNode::checkAllNeighborFlagAckBeingServedReceived(void) {
+	bool allReceived = true;
+
+	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	{
+
+		if (neighbors_ACK_BEING_SERVED_buffer[my_neighbors_ids[i]] == false && my_neighbors_ids[i] != parentId)
+		{
+			allReceived = false;
+		}
+	}
+
+	return allReceived;
 }
 
 /* Private Methods */
@@ -213,7 +252,7 @@ void SensorNode::muleOn1stSensorStart(void) {
 	Correction: maybe this is due to the fact that 'no one will ask this node's number of unattended
 	nodes' (this is set to '0' already) - but still there might be msgs to be accounted for here still - validate with prof. Uéverton */
 
-	//Returns an elapsed time on the calling processor
+	//Returns an elapsed time on the calling processor - marking when serving started
 	startServeTime = MPI_Wtime();
 
 	//Reseting flag that marks the event of a N(u) having sent 'ACK_SERVED' back
@@ -265,7 +304,7 @@ void SensorNode::msgServedReceived() {
 		}
 		else {
 			//Returns an elapsed time on the calling processor
-			startServeTime = MPI_Wtime(); //REVISE - should this line be here?
+			startServedTime = MPI_Wtime(); //REVISE - should this line be here?
 
 			//Reseting flag that marks the event of a N(v) having sent 'ACK_BEING_SERVED' back - except my parent node (mule is there)
 			resetNeigAckBeingServedSentBackBuffer(); //Will only be finished when all my N(v) have sent me ACK_BEING_SERVED
@@ -328,7 +367,70 @@ void SensorNode::msgBeingServedReceived() {
 }
 
 void SensorNode::msgAckServedReceived() {
+	//Marking that who sent the message acknowledges that I've been served by the mule
 	updateNeighborFlagAckServedReceived();
+
+	//All my N(u) are updated and have sent 'ACK_SERVED' back
+	if (checkAllNeighborFlagAckServedReceived()) //REVIEW - maybe Pablo is not checking for the parentId here
+	{
+		//Finished being served
+		endServeTime = MPI_Wtime(); //REVIEW - Should this be ended here?
+
+		//?
+		if (maxTime < (endServeTime - startServeTime))
+		{
+			maxTime = endServeTime - startServeTime;
+		}
+
+		//Variable marking when msgs to ask N(u) about unnattended nodes start to be sent
+		startRequestTime = MPI_Wtime();
+
+		//Resenting the counting of # of yet to be served neighbors of each of my neighbors
+		resetNeigEnumernodesBuffer();
+
+		//Requesting number of yet to be served neighbors of my neighbors
+		for (int i = 0; i < my_neighbors_ids.size(); i++)
+		{
+			//Debuging msg
+			debugMesseging(my_neighbors_ids[i], "MSG_REQUEST");
+
+			//Let who sent the message now I'm acknowledging that the mule is serving it
+			MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
+
+			//Updating metrics variables
+			cont_TOTAL_MSGS_SENT++;
+			cont_MSG_REQUEST++;
+		}
+	}
+
+	return;
+}
+
+void SensorNode::msgAckBeingServedReceived(void) {
+	neighbors_ACK_BEING_SERVED_buffer[u] = true;
+
+	//Checking if all my N(v) have sent 'ACK_BEING_SERVED' back
+	if (checkAllNeighborFlagAckBeingServedReceived())
+	{
+		//I'm finished being served
+		endServedTime = MPI_Wtime();
+
+		//?
+		if (maxTime < (endServedTime - startServedTime)) {
+			maxTime = endServedTime - startServedTime;
+		}
+
+		//Debuging msg
+		debugMesseging(parentId, "ACK_SERVED");
+
+		//Let who sent the message now I'm acknowledging that the mule is serving it
+		MPI_Send(&infoSent, 1, MPI_INT, parentId, ACK_SERVED, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
+
+		//Updating metrics variables
+		cont_TOTAL_MSGS_SENT++;
+		cont_ACK_SERVED++;
+	}
+
 
 	return;
 }
@@ -355,11 +457,13 @@ void SensorNode::initializeSensorNode(int id) {
 				msgServedReceived();
 				break;
 			case ACK_SERVED:
-				//msgAckServedReceived();
-				cout << "" << endl;
+				msgAckServedReceived();
 				break;
 			case MSG_BEING_SERVED:
 				msgBeingServedReceived();
+				break;
+			case ACK_BEING_SERVED:
+				msgAckBeingServedReceived();
 				break;
 			default:
 				break;
