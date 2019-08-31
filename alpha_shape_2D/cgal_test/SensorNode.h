@@ -41,7 +41,7 @@ private:
 	//Node associated properties.
 	int nodeId; //Graph's node id (sensor within the network)
 	int unattendedNeigbors; //Number of neighbors yet to be served
-	int u; //Identifies which node has send me the msg 'MSG_SERVED'
+	int u; //Identifies which node has send me a msg
 	bool served; //Flagged once the mule has passed by the node
 
 	//Execution controll associated properties.

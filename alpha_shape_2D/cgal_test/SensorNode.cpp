@@ -235,17 +235,19 @@ void SensorNode::msgServedReceived(int whoSentMsg) {
 		}
 		else {
 			//Returns an elapsed time on the calling processor
-			startServeTime = MPI_Wtime();
+			startServeTime = MPI_Wtime(); //REVISE - should this line be here?
 
 			//Reseting flag that marks the event of a N(v) having sent 'ACK_BEING_SERVED' back - except my parent node (mule is there)
 			resetNeigAckBeingServedSentBack(); //Will only be finished when all my N(v) have sent me ACK_BEING_SERVED
 
+			//Updating my neighbors about my status
 			for (int i = 0; i < my_neighbors_ids.size(); i++)
 			{
+				//My parent sent me the message (no need to notify him)
 				if (my_neighbors_ids[i].first != parentId)
 				{
 					cout << nodeId << " MSG_BEING_SERVED " << my_neighbors_ids[i].first << endl;
-					//Let my N(v) now I'm being served (my parent node is with the mule at this moment talking to me)
+					//Let my N(v) know I'm being served (my parent node is with the mule at this moment talking to me)
 					MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i].first, MSG_BEING_SERVED, MPI_COMM_WORLD);
 
 					//Updating metrics variables
@@ -254,6 +256,17 @@ void SensorNode::msgServedReceived(int whoSentMsg) {
 				}
 			}
 		}
+	}
+	else {
+		//Then all my neighbors have already been notified by me - notify whoever sent me MSG_SERVED that I'm confirming acknowledgment
+
+		cout << nodeId << " ACK_SERVED " << u << endl;
+		//Let my N(v) know I'm being served (my parent node is with the mule at this moment talking to me)
+		MPI_Send(&infoSent, 1, MPI_INT, u, ACK_SERVED, MPI_COMM_WORLD);
+
+		//Updating metrics variables
+		cont_TOTAL_MSGS_SENT++;
+		cont_ACK_SERVED++;
 	}
 }
 
