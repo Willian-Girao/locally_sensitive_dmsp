@@ -15,58 +15,26 @@
 using namespace std;
 
 class SensorNode {
-	//TODO - codes "if's"/msg sending and receiving/checkings should all become this classes's getters/setters.
 public:
 	SensorNode(string instanceFileName, int sensorId);
 	~SensorNode();
 
 	/* Getters */
 	//Node.
-	int getNodeId(void); //Returns the
-	int getUnattendedNeigbors(void); //Returns the
-	int getU(void); //Returns the
-	bool checkHasBenServed(void); //Returns the
-
 	//Execution.
-	int getTotalNodes(void); //Returns the
-	int getMuleStepsCountThusFar(void); //Returns the
-	int getParentId(void); //Returns the
-	bool checkIsExecEnded(void); //Returns the
-
 	//Metrics.
-	double getStartServeTime(void);
-	double getEndServeTime(void);
-	double getStartServedTime(void);
-	double getEndServedTime(void);
-	double getStartRequestTime(void);
-	double getEndRequestTime(void);
-	double getMaxTime(void);
+	//Utils.
 
 
 	/* Setters */
-	//Metrics.
-	void setStartServeTime(double x);
-	void setEndServeTime(double x);
-	void setStartServedTime(double x);
-	void setEndServedTime(double x);
-	void setStartRequestTime(double x);
-	void setEndRequestTime(double x);
-	void setMaxTime(double x);
+	//Node.
+	void initializeSensorNode(int myId);
 
 	//Execution.
-	void getTotalNodes(int y);
-	void getParentId(int y);
-	void getMuleStepsCountThusFar(int y);
+	//Metrics.
 
-	//Node.
-	void setNodeId(int z);
-	void setUnattendedNeigbors(int z);
-	void setU(int z);
-	void setHasBenServed(bool z);
-
-	/* Utils */
+	//Utils.
 	void pauseExec(void);
-	void initializeSensorNode(void);
 
 private:
 	/* Properties */
@@ -80,7 +48,19 @@ private:
 	int totalNodes; //Total number of sensors whithin the network
 	int parentId; //The parent of the node within the mules path on the network
 	int steps; //# of movements made by the mule thus far
-	int infoEnv;
+
+	//Counters associated with experiment metrics.
+	int	cont_SEND_MULE;
+	int cont_MSG_REQUEST;
+	int cont_TOTAL_MSGS_SENT;
+	int cont_MSG_ENUMERNODES;
+
+	int cont_MSG_SERVED;
+	int cont_ACK_SERVED;
+
+	int cont_MSG_BEING_SERVED;
+	int cont_ACK_BEING_SERVED;
+
 
 	bool endExec; //Flags the end of the execiton
 	bool isMuleWithMe; //Checks whether or not the mule is at the current node
@@ -88,26 +68,47 @@ private:
 	//Metrics related properties.
 	double startServeTime;
 	double endServeTime;
+
 	double startServedTime;
 	double endServedTime;
+
 	double startRequestTime;
 	double endRequestTime;
+
 	double maxTime;
 
 	//Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})
 	map<int, pair<double, double>> my_coordinates;
-	vector<int> my_neighbors_ids;
+	vector<pair<int, bool>> my_neighbors_ids; //Node id and flag that tell us if N(Node id) has sent 'ACK_SERVED' back
+	map<int, bool> my_neighbors_ACK_BEING_SERVED_buffer;
 
 	//TODO - Change this for a map of 'int' and 'pair'.
 	//TODO - 'pair' has to become a Point for the CGLA lib.
 	map<int, pair<double, double>> my_neighbors_xy;
 
 	//MPI associated properties.
-	//MPI_Status status;
-	//MPI_Status statusReq;
-	//MPI_Request statusSend;
+	int infoSent; //Stores sent information
+	int infoRec; //Stores received information
+
+	enum tags { //Messages exchanged by mule and nodes ('u' - parent | 'v' - chield)
+		SEND_MULE, // 1# Sends the mule to another node
+		MSG_REQUEST, // 2# Requests the number of uncovered neighboors
+		MSG_ENUMERNODES, // 3# Sends a msg requiering the number of uncovered nodes of a node v in N(u)
+		MSG_SERVED, // 4# Informs that the node has been served by the mule
+		MSG_BEING_SERVED,  // 5# Used by a node v (in N(u)) to let all N(v) know the mule is serving it
+		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
+		ACK_BEING_SERVED, // 7# Msg acknowledging that node a node in N(v) knows that v has been served
+		SEND_END // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
+	};
+
+	MPI_Status statusReq;
+	MPI_Request statusSend;
 
 	/* Methods */
+	void muleOn1stSensorStart(void);
+	void resetNeigAckServedSentBack(void); //Resets the flags that tell us if a N(u) has sent 'ACK_SERVED' back
+	void resetNeigAckBeingServedSentBack(void);
+	void msgServedReceived(int whoSentMsg);
 };
 
 #endif

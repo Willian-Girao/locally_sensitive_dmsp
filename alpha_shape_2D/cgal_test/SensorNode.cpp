@@ -6,7 +6,6 @@ using namespace std;
 
 //Constructor.
 SensorNode::SensorNode(string instanceFileName, int sensorId) {
-	infoEnv = 0;
 	//Progran execution starting now
 	endExec = false;
 
@@ -18,13 +17,25 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 	startRequestTime = 0.0;
 	endRequestTime = 0.0;
 	maxTime = 0.0;
-	steps = 0; //Mule has made no moves thus far
+	steps = 0;
+
+	//Messages counter variables
+	cont_SEND_MULE = 0;
+	cont_MSG_REQUEST = 0;
+	cont_MSG_ENUMERNODES = 0;
+	cont_MSG_SERVED = 0;
+	cont_MSG_BEING_SERVED = 0;
+	cont_ACK_SERVED = 0;
+	cont_ACK_BEING_SERVED = 0;
+	cont_TOTAL_MSGS_SENT = 0;
 
 	//Starting node associated variables
 	isMuleWithMe = false; //Mule has made no moves thus far
 	nodeId = sensorId; //Saving process id (aka nodeId; aka sensorId)
 	parentId = -1; //Parent thusfar is unkown
 	u = -1; //No msgs sent thus far
+	infoSent = 0; //No info sent thus far
+	infoRec = 0; //No info received thus far
 
 	//Opening file containing problem's instance in the form of a graph
 	ifstream instance_file;
@@ -89,7 +100,9 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 
 	for (int i = 1; i < stoi(split_vector[0]) + 1; ++i)
 	{
-		my_neighbors_ids.push_back(stoi(split_vector[i]));
+		pair<int, bool> id_flagAckServedSent(stoi(split_vector[i]), false);
+		my_neighbors_ids.push_back(id_flagAckServedSent);
+		my_neighbors_ACK_BEING_SERVED_buffer[stoi(split_vector[i])] = false;
 
 		//Get neighbor coordinates
 		int neighborFileLine = stoi(split_vector[i]) + 1;
@@ -112,120 +125,30 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 	unattendedNeigbors = stoi(split_vector[0]); //Initially all neighbors are unattended
 
 	cout << "MY_ID: " << nodeId << " | " << "MY_COORDINATES: " << my_xy.first << ", " << my_xy.second << " | NEIGHBORS_LINE_INDEX: " << nodeNeighborsFileLine << endl;
-	/*
-	cout << "Neighbors: ";
-	for (int i = 0; i < my_neighbors_xy.size(); ++i)
-	{
-		cout << my_neighbors_ids[i] << " (" << my_neighbors_xy[my_neighbors_ids[i]].first << ", " << my_neighbors_xy[my_neighbors_ids[i]].second << " ) ";
-	}
-
-	cout << "\n> Sensor finished being created.\n\n" << endl;
-	*/
 	cout << endl << endl;
 }
 
 //Destructor.
 SensorNode::~SensorNode() {
+	//Finalize the MPI environment.
+	MPI_Finalize();
+
+	cout << "\nNode #" << nodeId << " has ended.\n" << endl;
+	//TODO - method to check weather the node has had any issues (like if it has not been served).
 }
 
-/* Methods - utils */
-void SensorNode::initializeSensorNode(void) {
-	// Print off a hello world message
-	printf("[MPI - Hello] Node: %d / %d processes\n", nodeId, totalNodes);
-
-	if (nodeId == 0)
-	{
-		parentId = 0;
-		served = true;
-		isMuleWithMe = true;
-		unattendedNeigbors = 0;
-
-		//printf("NODE %d SEND_ATENDIDO_MULA to %d\n", nodeId, my_neighbors_ids[0]);
-		//MPI_Send(&infoEnv, 1, MPI_INT, 1, 'a', MPI_COMM_WORLD);
-	}
-
-	return;
-}
 
 /* Methods - setters */
 //Node.
-void SensorNode::setNodeId(int z) {
-	nodeId = z;
-	return;
-}
-
-void SensorNode::setUnattendedNeigbors(int z) {
-	unattendedNeigbors = z;
-	return;
-}
-
-void SensorNode::setU(int z) {
-	u = z;
-	return;
-}
-
-void SensorNode::setHasBenServed(bool z) {
-	served = z;
-	return;
-}
-
-
 //Execution.
-void SensorNode::getTotalNodes(int y) {
-	totalNodes = y;
-	return;
-}
-
-void SensorNode::getParentId(int y) {
-	parentId = y;
-	return;
-}
-
-void SensorNode::getMuleStepsCountThusFar(int y) {
-	steps = y;
-	return;
-}
-
-
-//Metrics
-void SensorNode::setStartServeTime(double x) {
-	startServeTime = x;
-	return;
-}
-
-void SensorNode::setEndServeTime(double x) {
-	endServeTime = x;
-	return;
-}
-
-void SensorNode::setStartServedTime(double x) {
-	startServedTime = x;
-	return;
-}
-
-void SensorNode::setEndServedTime(double x) {
-	endServedTime = x;
-	return;
-}
-
-void SensorNode::setStartRequestTime(double x) {
-	startRequestTime = x;
-	return;
-}
-
-void SensorNode::setEndRequestTime(double x) {
-	endRequestTime = x;
-	return;
-}
-
-void SensorNode::setMaxTime(double x) {
-	maxTime = x;
-	return;
-}
+//Metrics.
+//Utils.
 
 
 /* Methods - getters */
-
+//Node.
+//Execution.
+//Metrics.
 //Utils.
 void SensorNode::pauseExec(void) {
 	int a;
@@ -234,76 +157,133 @@ void SensorNode::pauseExec(void) {
 	return;
 }
 
-//Public.
-//Getters - Metrics
-double SensorNode::getStartServeTime(void)
-{
-	return startServeTime;
+void SensorNode::resetNeigAckServedSentBack(void) {
+	for (int i = 0; i < my_neighbors_ids.size(); ++i)
+	{
+		my_neighbors_ids[i].second = false;
+	}
+	return;
 }
 
-double SensorNode::getEndServeTime(void)
-{
-	return endServeTime;
+void SensorNode::resetNeigAckBeingServedSentBack(void) {
+	for (int i = 0; i < my_neighbors_ids.size(); ++i)
+	{
+		if (my_neighbors_ids[i].first != parentId)
+		{
+			my_neighbors_ACK_BEING_SERVED_buffer[my_neighbors_ids[i].first] = false;
+		}
+	}
+	return;
 }
 
-double SensorNode::getStartServedTime(void)
-{
-	return startServedTime;
+/* Private Methods */
+void SensorNode::muleOn1stSensorStart(void) {
+	parentId = 0; //1st node to be visited ("Base Station")
+	served = true; //Mule is serving me right now
+	isMuleWithMe = true; //Mule is with me
+	unattendedNeigbors = 0; /* REVISION - Pablo set's it to '0' here but I believe it should
+	be the actual number of neighbors for there are msgs to be exchanged in order to serve them.
+	Correction: maybe this is due to the fact that 'no one will ask this node's number of unattended
+	nodes' (this is set to '0' already) - but still there might be msgs to be accounted for here still - validate with prof. Uéverton */
+
+	//Returns an elapsed time on the calling processor
+	startServeTime = MPI_Wtime();
+
+	//Reseting flag that marks the event of a N(u) having sent 'ACK_SERVED' back
+	resetNeigAckServedSentBack();
+
+	//Notifying N(u) that u is being served by the mule
+	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	{
+		//Let N(u) know I'm being served
+		MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i].first, MSG_SERVED, MPI_COMM_WORLD);
+
+		//Updating metrics variables
+		cont_TOTAL_MSGS_SENT++;
+		cont_MSG_SERVED++;
+	}
 }
 
-double SensorNode::getEndServedTime(void)
-{
-	return endServedTime;
+void SensorNode::msgServedReceived(int whoSentMsg) {
+	u = whoSentMsg; //Saving who has sent me the msg
+
+	//In case I haven't been served yet
+	if (!served)
+	{
+		parentId = whoSentMsg; //Sensor sending me msg is my parent
+		
+		//REVISE - maybe this should only be set after receiving MSG_BEING_SERVED
+		served = true; //Mule can serve me
+
+		//Mule was at the base station - (it has been served already in the case of the base station - 1st node)
+		if (whoSentMsg == 0)
+		{
+			//Node 0 sensor is where the mule starts at
+			unattendedNeigbors--;
+		}
+
+		//Only one neighbor (and he is the one who sent me the msg) - there's nobody to send MSG_BEING_SERVED to
+		if (my_neighbors_ids.size() - 1 == 0)
+		{
+			cout << nodeId << " ACK_SERVED " << whoSentMsg << endl;
+			//Let u know I recognize he has been served
+			MPI_Send(&infoSent, 1, MPI_INT, whoSentMsg, ACK_SERVED, MPI_COMM_WORLD);
+
+			//Updating metrics variables
+			cont_TOTAL_MSGS_SENT++;
+			cont_ACK_BEING_SERVED++;
+		}
+		else {
+			//Returns an elapsed time on the calling processor
+			startServeTime = MPI_Wtime();
+
+			//Reseting flag that marks the event of a N(v) having sent 'ACK_BEING_SERVED' back - except my parent node (mule is there)
+			resetNeigAckBeingServedSentBack(); //Will only be finished when all my N(v) have sent me ACK_BEING_SERVED
+
+			for (int i = 0; i < my_neighbors_ids.size(); i++)
+			{
+				if (my_neighbors_ids[i].first != parentId)
+				{
+					cout << nodeId << " MSG_BEING_SERVED " << my_neighbors_ids[i].first << endl;
+					//Let my N(v) now I'm being served (my parent node is with the mule at this moment talking to me)
+					MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i].first, MSG_BEING_SERVED, MPI_COMM_WORLD);
+
+					//Updating metrics variables
+					cont_TOTAL_MSGS_SENT++;
+					cont_MSG_BEING_SERVED++;
+				}
+			}
+		}
+	}
 }
 
-double SensorNode::getStartRequestTime(void)
-{
-	return startRequestTime;
+void SensorNode::initializeSensorNode(int id) {
+	if (id == 0)
+	{
+		muleOn1stSensorStart();
+	}
+
+	int node = 0; //Reference to the id of the node sending the incoming msg
+
+	while (!endExec) {
+		/* Listen for the msgs here */
+		MPI_Recv(&infoRec, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &statusReq);
+
+		node = statusReq.MPI_SOURCE; //Saving who sent the msg
+
+		switch (statusReq.MPI_TAG)
+		{
+			case MSG_SERVED:
+				msgServedReceived(node);
+				cout << node << " MSG_SERVED " << id << endl;
+				break;
+			case ACK_SERVED:
+				cout <<"[ ACK_SERVED RECEIVED ]" << endl;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return;
 }
-
-double SensorNode::getEndRequestTime(void)
-{
-	return endRequestTime;
-}
-
-double SensorNode::getMaxTime(void)
-{
-	return maxTime;
-}
-
-//Getters - Node
-int SensorNode::getNodeId(void) {
-	return nodeId;
-}
-
-int SensorNode::getUnattendedNeigbors(void) {
-	return unattendedNeigbors;
-}
-
-int SensorNode::getU(void) {
-	return u;
-}
-
-bool SensorNode::checkHasBenServed(void) {
-	return served;
-}
-
-//Getters - Execution
-int SensorNode::getTotalNodes(void) {
-	return totalNodes;
-}
-
-int SensorNode::getMuleStepsCountThusFar(void) {
-	return steps;
-}
-
-int SensorNode::getParentId(void) {
-	return parentId;
-}
-
-bool SensorNode::checkIsExecEnded(void) {
-	return endExec;
-}
-
-
-//Private.
