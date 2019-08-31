@@ -12,11 +12,15 @@
 #include <sstream>
 #include <mpi.h>
 
+//For debugging
+#include <windows.h>
+#include <wchar.h>
+
 using namespace std;
 
 class SensorNode {
 public:
-	SensorNode(string instanceFileName, int sensorId);
+	SensorNode(string instanceFileName, int sensorId, bool shouldDebug);
 	~SensorNode();
 
 	/* Getters */
@@ -35,6 +39,7 @@ public:
 
 	//Utils.
 	void pauseExec(void);
+	void debugMesseging(int receiver, string msg);
 
 private:
 	/* Properties */
@@ -76,6 +81,10 @@ private:
 	double endRequestTime;
 
 	double maxTime;
+
+	//Debuging
+	bool debug;
+	double mpiTimeDebuging;
 
 	//Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})
 	map<int, pair<double, double>> my_coordinates;

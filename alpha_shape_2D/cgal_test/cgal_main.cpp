@@ -38,18 +38,21 @@ const static int tag = 1;
 
 int main(int argc, char* argv[])
 {
+	//Debug variables
+	bool shouldDebug = true;
+
 	/* Initializing MPI parallelism */
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &numOfProcs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myId);
 
-	cout << "Hello from process # " << myId << '\n';
+	//cout << "Hello from process # " << myId << '\n';
 
 	/* Consuming instance file and initializing network nodes */
 	string instanceFileName = "./test_instances/instance_input_test00.dat"; //Input file
 
 	/* Creating 'myId' sensor */
-	SensorNode u(instanceFileName, myId);
+	SensorNode u(instanceFileName, myId, shouldDebug);
 	
 	/* Start creating solution */
 	u.initializeSensorNode(myId);

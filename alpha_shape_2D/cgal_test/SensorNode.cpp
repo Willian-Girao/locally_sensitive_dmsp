@@ -5,7 +5,11 @@
 using namespace std;
 
 //Constructor.
-SensorNode::SensorNode(string instanceFileName, int sensorId) {
+SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) {
+	//Starting debug properties
+	debug = shouldDebug;
+	mpiTimeDebuging = MPI_Wtime();
+
 	//Progran execution starting now
 	endExec = false;
 
@@ -124,8 +128,8 @@ SensorNode::SensorNode(string instanceFileName, int sensorId) {
 
 	unattendedNeigbors = stoi(split_vector[0]); //Initially all neighbors are unattended
 
-	cout << "MY_ID: " << nodeId << " | " << "MY_COORDINATES: " << my_xy.first << ", " << my_xy.second << " | NEIGHBORS_LINE_INDEX: " << nodeNeighborsFileLine << endl;
-	cout << endl << endl;
+	//cout << "MY_ID: " << nodeId << " | " << "MY_COORDINATES: " << my_xy.first << ", " << my_xy.second << " | NEIGHBORS_LINE_INDEX: " << nodeNeighborsFileLine << endl;
+	//cout << endl << endl;
 }
 
 //Destructor.
@@ -154,6 +158,16 @@ void SensorNode::pauseExec(void) {
 	int a;
 	cout << "\n - EXECUTION PAUSED...\n" << endl;
 	cin >> a;
+	return;
+}
+
+void SensorNode::debugMesseging(int receiver, string msg) {
+	if (debug)
+	{
+		double tf = MPI_Wtime();
+		cout << "\n" << nodeId << " " << msg << " " << receiver << "	[ " << (tf - mpiTimeDebuging) << " ]" << endl;
+	}
+
 	return;
 }
 
@@ -195,6 +209,9 @@ void SensorNode::muleOn1stSensorStart(void) {
 	//Notifying N(u) that u is being served by the mule
 	for (int i = 0; i < my_neighbors_ids.size(); i++)
 	{
+		//Debuging msg
+		debugMesseging(my_neighbors_ids[i].first, "MSG_SERVED");
+
 		//Let N(u) know I'm being served
 		MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i].first, MSG_SERVED, MPI_COMM_WORLD);
 
@@ -205,7 +222,8 @@ void SensorNode::muleOn1stSensorStart(void) {
 }
 
 void SensorNode::msgServedReceived(int whoSentMsg) {
-	u = whoSentMsg; //Saving who has sent me the msg
+	//Saving who has sent me the msg
+	u = whoSentMsg;
 
 	//In case I haven't been served yet
 	if (!served)
@@ -225,9 +243,11 @@ void SensorNode::msgServedReceived(int whoSentMsg) {
 		//Only one neighbor (and he is the one who sent me the msg) - there's nobody to send MSG_BEING_SERVED to
 		if (my_neighbors_ids.size() - 1 == 0)
 		{
-			cout << nodeId << " ACK_SERVED " << whoSentMsg << endl;
+			//Debuging msg
+			debugMesseging(u, "ACK_SERVED");
+
 			//Let u know I recognize he has been served
-			MPI_Send(&infoSent, 1, MPI_INT, whoSentMsg, ACK_SERVED, MPI_COMM_WORLD);
+			MPI_Send(&infoSent, 1, MPI_INT, u, ACK_SERVED, MPI_COMM_WORLD);
 
 			//Updating metrics variables
 			cont_TOTAL_MSGS_SENT++;
@@ -246,7 +266,9 @@ void SensorNode::msgServedReceived(int whoSentMsg) {
 				//My parent sent me the message (no need to notify him)
 				if (my_neighbors_ids[i].first != parentId)
 				{
-					cout << nodeId << " MSG_BEING_SERVED " << my_neighbors_ids[i].first << endl;
+					//Debuging msg
+					debugMesseging(my_neighbors_ids[i].first, "MSG_BEING_SERVED");
+
 					//Let my N(v) know I'm being served (my parent node is with the mule at this moment talking to me)
 					MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i].first, MSG_BEING_SERVED, MPI_COMM_WORLD);
 
@@ -260,7 +282,9 @@ void SensorNode::msgServedReceived(int whoSentMsg) {
 	else {
 		//Then all my neighbors have already been notified by me - notify whoever sent me MSG_SERVED that I'm confirming acknowledgment
 
-		cout << nodeId << " ACK_SERVED " << u << endl;
+		//Debuging msg
+		debugMesseging(u, "ACK_SERVED");
+
 		//Let my N(v) know I'm being served (my parent node is with the mule at this moment talking to me)
 		MPI_Send(&infoSent, 1, MPI_INT, u, ACK_SERVED, MPI_COMM_WORLD);
 
@@ -284,11 +308,11 @@ void SensorNode::initializeSensorNode(int id) {
 
 		node = statusReq.MPI_SOURCE; //Saving who sent the msg
 
+		//Make message_type-based action upon message arrival
 		switch (statusReq.MPI_TAG)
 		{
 			case MSG_SERVED:
 				msgServedReceived(node);
-				cout << node << " MSG_SERVED " << id << endl;
 				break;
 			case ACK_SERVED:
 				cout <<"[ ACK_SERVED RECEIVED ]" << endl;
