@@ -37,10 +37,6 @@ public:
 	//Execution.
 	//Metrics.
 
-	//Utils.
-	void pauseExec(void);
-	void debugMesseging(int receiver, string msg);
-
 private:
 	/* Properties */
 	//Node associated properties.
@@ -86,10 +82,12 @@ private:
 	bool debug;
 	double mpiTimeDebuging;
 
+	map<int, bool> neighbors_ACK_SERVED_buffer;
+	map<int, bool> neighbors_ACK_BEING_SERVED_buffer;
+
 	//Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})
 	map<int, pair<double, double>> my_coordinates;
-	vector<pair<int, bool>> my_neighbors_ids; //Node id and flag that tell us if N(Node id) has sent 'ACK_SERVED' back
-	map<int, bool> my_neighbors_ACK_BEING_SERVED_buffer;
+	vector<int> my_neighbors_ids;
 
 	//TODO - Change this for a map of 'int' and 'pair'.
 	//TODO - 'pair' has to become a Point for the CGLA lib.
@@ -115,9 +113,19 @@ private:
 
 	/* Methods */
 	void muleOn1stSensorStart(void);
-	void resetNeigAckServedSentBack(void); //Resets the flags that tell us if a N(u) has sent 'ACK_SERVED' back
-	void resetNeigAckBeingServedSentBack(void);
-	void msgServedReceived(int whoSentMsg);
+	void resetNeigAckServedSentBackBuffer(void); //Resets the flags that tell us if a N(u) has sent 'ACK_SERVED' back
+	void resetNeigAckBeingServedSentBackBuffer(void);
+	void updateNeighborFlagAckServedReceived(void); //Marks that a neighbor have sent 'ACK_SERVED' back
+
+	//Upon Receiving exchanged messages
+	void msgServedReceived(void); /* Mule is with my parent and I need to update my neighbors | Received: 'MSG_SERVED'; Sent ahead: 'MSG_BEING_SERVED') */
+	void msgAckServedReceived(void); /* My one of my N(u) have updated of its neighbors | Received: 'ACK_SERVED' */
+	void msgBeingServedReceived(void); /* One of my N(u) is in contact with the mule because one of his neighbors has it | Received: 'MSG_BEING_SERVED' | Sent back: 'ACK_BEING_SERVED' */
+
+	//Utils.
+	void pauseExec(void);
+	void debugMesseging(int receiver, string msg);
+	void errorHasOccoured(string msg);
 };
 
 #endif
