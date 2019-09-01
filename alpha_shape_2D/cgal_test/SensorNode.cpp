@@ -139,10 +139,10 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 
 //Destructor.
 SensorNode::~SensorNode() {
-	//Finalize the MPI environment.
-	MPI_Finalize();
-
-	cout << "\nNode #" << nodeId << " has ended.\n" << endl;
+	if (debug)
+	{
+		cout << "Sensor #" << nodeId << " has resumed operating." << endl;
+	}
 	//TODO - method to check weather the node has had any issues (like if it has not been served).
 }
 
@@ -223,7 +223,7 @@ bool SensorNode::checkAllNeighborFlagAckServedReceived(void) {
 
 	for (int i = 0; i < my_neighbors_ids.size(); i++)
 	{
-		if (neighbors_ACK_SERVED_buffer[my_neighbors_ids[i]] == false)
+		if (neighbors_ACK_SERVED_buffer[my_neighbors_ids[i]] == false && my_neighbors_ids[i] != parentId)
 		{
 			allReceived = false;
 		}
@@ -268,11 +268,7 @@ bool SensorNode::workToBeDoneStill(void) {
 	for (int i = 0; i < my_neighbors_ids.size(); i++)
 	{
 		//TODO - set the parent's flag to true when receiving 'MSG_SERVED' so I wont have to check if its different from parentId down bellow.
-		if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
-		{
-			errorHasOccoured("Buffer flag check error (should not be false at this point) - File: SensorNode.cpp | Error line #: 271");
-		}
-		else if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second > 0)
+		if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second > 0)
 		{
 			allWithZeroNeighborsToBeServed = true;
 		}
@@ -588,7 +584,14 @@ void SensorNode::msgEnumernodesReceived(void) {
 				//Flaging end of processing of the network
 				endExec = true;
 
-				//TODO - All done: MPI send MSG_ENDED
+				//TODO - method to return the answer here.
+				cout << "\n# steps made by the mule: " << steps << endl;
+
+				//Broadcasting to my neighbors
+				for (int i = 0; i < my_neighbors_ids.size(); i++)
+				{
+					MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], SEND_END, MPI_COMM_WORLD);
+				}
 			}
 			else {
 				//Updating number of moves the mule has made
@@ -608,6 +611,84 @@ void SensorNode::msgEnumernodesReceived(void) {
 	}
 
 	return;
+}
+
+void SensorNode::msgSendMuleReceived(void) {
+	//Updating the mule steps counter - mule has just moved here
+	steps = infoRec;
+
+	//Mule wasnt with me - but now it is
+	if (!isMuleWithMe)
+	{
+		//Mule has just arrived, can serve me and my N(u) - thus no pendent neighbors to be served left
+		unattendedNeigbors = 0;
+
+		//Mule is with me
+		isMuleWithMe = true;
+
+		//Mule is currently serving me
+		served = true;
+
+		//My parent has sent me the mule
+		parentId = u;
+
+		//Starting to account for node/mule processing time
+		startServeTime = MPI_Wtime();
+
+		//Reseting flag that marks the event of a N(u) having sent 'ACK_SERVED' back
+		resetNeigAckServedSentBackBuffer();
+
+		//Notifying N(u) that u is being served by the mule
+		for (int i = 0; i < my_neighbors_ids.size(); i++)
+		{
+			//No need to sent to my father
+			if (my_neighbors_ids[i] != parentId)
+			{
+				//Debuging msg
+				debugMesseging(my_neighbors_ids[i], "MSG_SERVED");
+
+				//Let N(u) know I'm being served
+				MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_SERVED, MPI_COMM_WORLD);
+
+				//Updating metrics variables
+				cont_TOTAL_MSGS_SENT++;
+				cont_MSG_SERVED++;
+			}
+		}
+	}
+	else {
+		//Mule has been sent here before and I have already be served - must check for neighbors that need the mule
+
+		//Resenting the counting of # of yet to be served neighbors of each of my neighbors - no need to wait for 'ACK_SERVED'
+		resetNeigEnumernodesBuffer();
+
+		//Requesting number of yet to be served neighbors of my neighbors
+		for (int i = 0; i < my_neighbors_ids.size(); i++)
+		{
+			//Debuging msg
+			debugMesseging(my_neighbors_ids[i], "MSG_REQUEST");
+
+			//Let who sent the message now I'm acknowledging that the mule is serving it
+			MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
+
+			//Updating metrics variables
+			cont_TOTAL_MSGS_SENT++;
+			cont_MSG_REQUEST++;
+		}
+	}
+
+	return;
+}
+
+void SensorNode::broadcastProgramTermination(void) {
+	//Program termination required
+	endExec = true;
+
+	//Broadcasting to my neighbors
+	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	{
+		MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], SEND_END, MPI_COMM_WORLD);
+	}
 }
 
 void SensorNode::initializeSensorNode(int id) {
@@ -647,10 +728,10 @@ void SensorNode::initializeSensorNode(int id) {
 				msgEnumernodesReceived();
 				break;
 			case SEND_MULE:
-				errorHasOccoured("SEND_MULE");
+				msgSendMuleReceived();
 				break;
 			case SEND_END:
-				errorHasOccoured("SEND_END");
+				broadcastProgramTermination();
 				break;
 			default:
 				errorHasOccoured("Message received and not processed");

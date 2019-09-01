@@ -65,6 +65,7 @@ private:
 
 	bool endExec; //Flags the end of the execiton
 	bool isMuleWithMe; //Checks whether or not the mule is at the current node
+	//TODO - maybe set 'isMuleWithMe' when mule gets out of a node and have another one to track where it is
 
 	//Metrics related properties.
 	//REVIEW - need to validate this
@@ -146,6 +147,8 @@ private:
 	void msgAckBeingServedReceived(void); /* One of my N(v) have acknowledged that he knows that who has sent me the msg has the mule */
 	void msgRequestReceived(void); /* My parent is requesting the number of yet to be served neighbors I have */
 	void msgEnumernodesReceived(void);
+	void msgSendMuleReceived(void);
+	void broadcastProgramTermination(void);
 
 	//Utils.
 	void pauseExec(void);

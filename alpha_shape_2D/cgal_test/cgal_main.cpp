@@ -39,7 +39,7 @@ const static int tag = 1;
 int main(int argc, char* argv[])
 {
 	//Debug variables
-	bool shouldDebug = true;
+	bool shouldDebug = false;
 
 	/* Initializing MPI parallelism */
 	MPI_Init(&argc, &argv);
@@ -56,6 +56,9 @@ int main(int argc, char* argv[])
 	
 	/* Start creating solution */
 	u.initializeSensorNode(myId);
+
+	//Finalize the MPI environment.
+	MPI_Finalize();
 
 	return 0;
 }
