@@ -85,7 +85,7 @@ private:
 
 	map<int, bool> neighbors_ACK_SERVED_buffer;
 	map<int, bool> neighbors_ACK_BEING_SERVED_buffer;
-	map<int, int> neighbors_MSG_ENUMERNODES_buffer; //Stores answers (values) received in 'MSG_ENUMERNODES'
+	map<int, pair<bool, int>> neighbors_MSG_ENUMERNODES_buffer; //Stores answers (values) received in 'MSG_ENUMERNODES'
 
 	//Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})
 	map<int, pair<double, double>> my_coordinates;
@@ -99,16 +99,27 @@ private:
 	int infoSent; //Stores sent information
 	int infoRec; //Stores received information
 
-	enum tags { //Messages exchanged by mule and nodes ('u' - parent | 'v' - chield)
+	//Messages exchanged by mule and nodes ('u' - parent | 'v' - chield)
+	enum tags {
 		SEND_MULE, // 1# Sends the mule to another node
 		MSG_REQUEST, // 2# Requests the number of uncovered neighboors
-		MSG_ENUMERNODES, // 3# Sends a msg with the number of yet to be served sensors I have
+		MSG_ENUMERNODES, // 3# Sends a msg with the number of yet to be served sensors I have //TODO - change name of this propertie later
 		MSG_SERVED, // 4# Informs that the node has been served by the mule
 		MSG_BEING_SERVED,  // 5# Used by a node v (in N(u)) to let all N(v) know the mule is serving it
 		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
 		ACK_BEING_SERVED, // 7# Msg acknowledging that node a node in N(v) knows that v has been served
 		SEND_END // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
 	};
+	
+	//Methods utilized to select node where the mule will be sent to
+	enum selection_method {
+		GREEDY,
+		CONVEX_HULL,
+		ALPHA_SHAPE
+	};
+
+	//Elected selection method
+	selection_method selected;
 
 	MPI_Status statusReq;
 	MPI_Request statusSend;
@@ -122,6 +133,11 @@ private:
 
 	bool checkAllNeighborFlagAckServedReceived(void); //Marks that a neighbor have sent 'ACK_SERVED' back
 	bool checkAllNeighborFlagAckBeingServedReceived(void); //Marks that a neighbor have sent 'ACK_BEING_SERVED' back
+	bool checkAllMsgEnumernodesReceived(void); //Checks whether or not all of my N(u) have sent me their updated # of neighbors remaining to be attended by the mule
+	bool workToBeDoneStill(void); //Checks if there is any neighbor with its own neighbors waiting to be served
+
+	int methodOfChoice(void);
+	int makeGreedySelection(void);
 
 	//Upon Receiving exchanged messages
 	void msgServedReceived(void); /* Mule is with my parent and I need to update my neighbors | Received: 'MSG_SERVED'; Sent ahead: 'MSG_BEING_SERVED') */
@@ -129,6 +145,7 @@ private:
 	void msgBeingServedReceived(void); /* One of my N(u) is in contact with the mule because one of his neighbors has it | Received: 'MSG_BEING_SERVED' | Sent back: 'ACK_BEING_SERVED' */
 	void msgAckBeingServedReceived(void); /* One of my N(v) have acknowledged that he knows that who has sent me the msg has the mule */
 	void msgRequestReceived(void); /* My parent is requesting the number of yet to be served neighbors I have */
+	void msgEnumernodesReceived(void);
 
 	//Utils.
 	void pauseExec(void);

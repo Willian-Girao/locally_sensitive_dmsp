@@ -6,6 +6,9 @@ using namespace std;
 
 //Constructor.
 SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) {
+	//Saving neighbor selection method chosen
+	selected = GREEDY;
+
 	//Starting debug properties
 	debug = shouldDebug;
 	mpiTimeDebuging = MPI_Wtime();
@@ -21,7 +24,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 	startRequestTime = 0.0;
 	endRequestTime = 0.0;
 	maxTime = 0.0;
-	steps = 0;
+	steps = 0; //Mule has made no moves yet
 
 	//Messages counter variables
 	cont_SEND_MULE = 0;
@@ -108,6 +111,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 		//Initializing flag buffers
 		neighbors_ACK_BEING_SERVED_buffer[stoi(split_vector[i])] = false;
 		neighbors_ACK_SERVED_buffer[stoi(split_vector[i])] = false;
+		neighbors_MSG_ENUMERNODES_buffer[stoi(split_vector[i])] = make_pair<bool, int>(false, -1);
 
 		//Get neighbor coordinates
 		int neighborFileLine = stoi(split_vector[i]) + 1;
@@ -201,7 +205,8 @@ void SensorNode::resetNeigAckBeingServedSentBackBuffer(void) {
 void SensorNode::resetNeigEnumernodesBuffer(void) {
 	for (int i = 0; i < my_neighbors_ids.size(); ++i)
 	{
-		neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]] = -1;
+		neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first = false;
+		neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second = -1;
 	}
 
 	return;
@@ -240,6 +245,93 @@ bool SensorNode::checkAllNeighborFlagAckBeingServedReceived(void) {
 	}
 
 	return allReceived;
+}
+
+bool SensorNode::checkAllMsgEnumernodesReceived(void) {
+	bool allReceived = true;
+	
+	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	{
+		//TODO - set the parent's flag to true when receiving 'MSG_SERVED' so I wont have to check if its different from parentId down bellow.
+		if ((neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false || neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second == -1) && my_neighbors_ids[i] != parentId)
+		{
+			allReceived = false;
+		}
+	}
+
+	return allReceived;
+}
+
+bool SensorNode::workToBeDoneStill(void) {
+	bool allWithZeroNeighborsToBeServed = false;
+
+	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	{
+		//TODO - set the parent's flag to true when receiving 'MSG_SERVED' so I wont have to check if its different from parentId down bellow.
+		if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
+		{
+			errorHasOccoured("Buffer flag check error (should not be false at this point) - File: SensorNode.cpp | Error line #: 271");
+		}
+		else if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second > 0)
+		{
+			allWithZeroNeighborsToBeServed = true;
+		}
+	}
+
+
+	return allWithZeroNeighborsToBeServed;
+}
+
+int SensorNode::makeGreedySelection(void) {
+	//Result will be the neighbor with the largest # of neighbor sensors not served yet
+	int sensorId = -1;
+	int biggestDemmand = -1;
+
+	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	{
+		//TODO - set the parent's flag to true when receiving 'MSG_SERVED' so I wont have to check if its different from parentId down bellow.
+		if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first != false && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second > 0)
+		{
+			if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second > biggestDemmand) {
+				//Updating optimal choice
+				biggestDemmand = neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second;
+				sensorId = my_neighbors_ids[i];
+			}
+		}
+	}
+
+	//Error checking
+	if (sensorId == -1)
+	{
+		errorHasOccoured("Next sensor to send the mule has not been chosen");
+	}
+
+	return sensorId;
+}
+
+int SensorNode::methodOfChoice(void) {
+	//Selected node (sensor) to send the mule next
+	int selectedNeighbor = -1;
+
+	//Checking wich selection method was elected
+	switch (selected)
+	{
+		case GREEDY:
+			//Choosing the neighbor with the biggest # of yet to be served neighbors
+			return makeGreedySelection();
+			break;
+		default:
+			errorHasOccoured("No neighbor selection method chosen");
+		break;
+	}
+
+	//Error checking
+	if (selectedNeighbor = -1)
+	{
+		errorHasOccoured("Neighbor selection to send the mule didn't return anything");
+	}
+
+	return selectedNeighbor;
 }
 
 /* Private Methods */
@@ -436,6 +528,9 @@ void SensorNode::msgAckBeingServedReceived(void) {
 }
 
 void SensorNode::msgRequestReceived(void) {
+	//Saving # of neighbors not served yet I have to msg's payload
+	infoSent = unattendedNeigbors;
+
 	//Debuging msg
 	debugMesseging(u, "MSG_ENUMERNODES");
 
@@ -445,6 +540,72 @@ void SensorNode::msgRequestReceived(void) {
 	//Updating metrics variables
 	cont_TOTAL_MSGS_SENT++;
 	cont_MSG_ENUMERNODES++;
+
+	return;
+}
+
+void SensorNode::msgEnumernodesReceived(void) {
+	//Saving (my neighbor) u's # of yet to be served neighbors
+	neighbors_MSG_ENUMERNODES_buffer[u].first = true;
+	neighbors_MSG_ENUMERNODES_buffer[u].second = infoRec;
+
+	//All of my neighbors (except my father) have sent me back their updated # of neighbors waiting to be served
+	if (checkAllMsgEnumernodesReceived())
+	{
+		//Finished sending msgs
+		endRequestTime = MPI_Wtime();
+
+		//?
+		if (maxTime < (endRequestTime - startRequestTime)) {
+			maxTime = endRequestTime - startRequestTime;
+		}
+
+		//I still have to send the mule to someone - one of my neighbors have neighbor(s) yet to be served
+		if (workToBeDoneStill())
+		{
+			//Choosing where the mule will be sent next based on the elected method of choice
+			int choseNeighbor = methodOfChoice();
+
+			//Updating number of moves the mule has made
+			infoSent = steps + 1;
+
+			//Debuging msg
+			debugMesseging(choseNeighbor, "SEND_MULE");
+
+			//Sending the # of yet to be served neighbors I have to whoever sent me 'MSG_REQUEST' (my parent)
+			MPI_Send(&infoSent, 1, MPI_INT, choseNeighbor, SEND_MULE, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
+
+			//Updating metrics variables
+			cont_TOTAL_MSGS_SENT++;
+			cont_SEND_MULE++;
+		}
+		else {
+			//All neighbors served
+
+			//Im at the 1st node (and there are no more neighbors to be served) - RESCUME EXECUTION
+			if (nodeId == 0)
+			{
+				//Flaging end of processing of the network
+				endExec = true;
+
+				//TODO - All done: MPI send MSG_ENDED
+			}
+			else {
+				//Updating number of moves the mule has made
+				infoSent = steps + 1;
+
+				//Debuging msg
+				debugMesseging(parentId, "SEND_MULE");
+
+				//Send mule back to my parent
+				MPI_Send(&infoSent, 1, MPI_INT, parentId, SEND_MULE, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
+
+				//Updating metrics variables
+				cont_TOTAL_MSGS_SENT++;
+				cont_SEND_MULE++;
+			}
+		}
+	}
 
 	return;
 }
@@ -483,7 +644,7 @@ void SensorNode::initializeSensorNode(int id) {
 				msgRequestReceived();
 				break;
 			case MSG_ENUMERNODES:
-				errorHasOccoured("MSG_ENUMERNODES");
+				msgEnumernodesReceived();
 				break;
 			case SEND_MULE:
 				errorHasOccoured("SEND_MULE");
