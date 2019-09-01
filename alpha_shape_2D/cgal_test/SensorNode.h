@@ -102,7 +102,7 @@ private:
 	enum tags { //Messages exchanged by mule and nodes ('u' - parent | 'v' - chield)
 		SEND_MULE, // 1# Sends the mule to another node
 		MSG_REQUEST, // 2# Requests the number of uncovered neighboors
-		MSG_ENUMERNODES, // 3# Sends a msg with the number of uncovered nodes of a node v in N(u)
+		MSG_ENUMERNODES, // 3# Sends a msg with the number of yet to be served sensors I have
 		MSG_SERVED, // 4# Informs that the node has been served by the mule
 		MSG_BEING_SERVED,  // 5# Used by a node v (in N(u)) to let all N(v) know the mule is serving it
 		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
@@ -128,6 +128,7 @@ private:
 	void msgAckServedReceived(void); /* My one of my N(u) have updated of its neighbors | Received: 'ACK_SERVED' */
 	void msgBeingServedReceived(void); /* One of my N(u) is in contact with the mule because one of his neighbors has it | Received: 'MSG_BEING_SERVED' | Sent back: 'ACK_BEING_SERVED' */
 	void msgAckBeingServedReceived(void); /* One of my N(v) have acknowledged that he knows that who has sent me the msg has the mule */
+	void msgRequestReceived(void); /* My parent is requesting the number of yet to be served neighbors I have */
 
 	//Utils.
 	void pauseExec(void);

@@ -232,7 +232,7 @@ bool SensorNode::checkAllNeighborFlagAckBeingServedReceived(void) {
 
 	for (int i = 0; i < my_neighbors_ids.size(); i++)
 	{
-
+		//TODO - set the parent's flag to true when receiving 'MSG_SERVED' so I wont have to check if its different from parentId down bellow.
 		if (neighbors_ACK_BEING_SERVED_buffer[my_neighbors_ids[i]] == false && my_neighbors_ids[i] != parentId)
 		{
 			allReceived = false;
@@ -435,6 +435,20 @@ void SensorNode::msgAckBeingServedReceived(void) {
 	return;
 }
 
+void SensorNode::msgRequestReceived(void) {
+	//Debuging msg
+	debugMesseging(u, "MSG_ENUMERNODES");
+
+	//Sending the # of yet to be served neighbors I have to whoever sent me 'MSG_REQUEST' (my parent)
+	MPI_Send(&infoSent, 1, MPI_INT, u, MSG_ENUMERNODES, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
+
+	//Updating metrics variables
+	cont_TOTAL_MSGS_SENT++;
+	cont_MSG_ENUMERNODES++;
+
+	return;
+}
+
 void SensorNode::initializeSensorNode(int id) {
 	if (id == 0)
 	{
@@ -465,7 +479,20 @@ void SensorNode::initializeSensorNode(int id) {
 			case ACK_BEING_SERVED:
 				msgAckBeingServedReceived();
 				break;
+			case MSG_REQUEST:
+				msgRequestReceived();
+				break;
+			case MSG_ENUMERNODES:
+				errorHasOccoured("MSG_ENUMERNODES");
+				break;
+			case SEND_MULE:
+				errorHasOccoured("SEND_MULE");
+				break;
+			case SEND_END:
+				errorHasOccoured("SEND_END");
+				break;
 			default:
+				errorHasOccoured("Message received and not processed");
 				break;
 		}
 	}
