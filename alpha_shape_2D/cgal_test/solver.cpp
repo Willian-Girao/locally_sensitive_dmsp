@@ -26,7 +26,6 @@
 #include "mpi.h"
 
 // User defined headers.
-#include "utils.h"
 #include "SensorNode.h"
 
 using namespace std;
@@ -34,11 +33,9 @@ using namespace std;
 /* Registering processes identifiers (sensor id) and number of processes (number of nodes) */
 int myId, numOfProcs;
 
-const static int tag = 1;
-
 int main(int argc, char* argv[])
 {
-	//Debug variables
+	/* Debug variables */
 	bool shouldDebug = false;
 
 	/* Initializing MPI parallelism */
@@ -46,19 +43,15 @@ int main(int argc, char* argv[])
 	MPI_Comm_size(MPI_COMM_WORLD, &numOfProcs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myId);
 
-	//cout << "Hello from process # " << myId << '\n';
-
 	/* Consuming instance file and initializing network nodes */
-	string instanceFileName = "./test_instances/instance_input_test00.dat"; //Input file
+	string instanceFileName = "./test_instances/instance_input_test00.dat";
 
-	/* Creating 'myId' sensor */
+	/* Constructor of the class consumes the instance and initializes the sensor accordingly */
 	SensorNode u(instanceFileName, myId, shouldDebug);
-	
-	/* Start creating solution */
-	u.initializeSensorNode(myId);
 
-	//Finalize the MPI environment.
+	/* Finalize the MPI environment. */
 	MPI_Finalize();
 
+	/* Resuming exection */
 	return 0;
 }

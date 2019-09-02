@@ -12,31 +12,16 @@
 #include <sstream>
 #include <mpi.h>
 
-//For debugging
-#include <windows.h>
-#include <wchar.h>
-
 using namespace std;
 
 class SensorNode {
 public:
+	//Constructor of the class consumes the instance and initializes the sensor accordingly
 	SensorNode(string instanceFileName, int sensorId, bool shouldDebug);
 	~SensorNode();
 
-	/* Getters */
-	//Node.
-	//Execution.
-	//Metrics.
-	//Utils.
-
-
 	/* Setters */
-	//Node.
-	void initializeSensorNode(int myId);
-
-	//Execution.
-	//Metrics.
-
+	void initializeSensorNode(void);
 private:
 	/* Properties */
 	//Node associated properties.
@@ -80,6 +65,8 @@ private:
 
 	double maxTime; //?
 
+	int totalMsgsSent; //Counts how many messages have been sent to serve the whole network
+
 	//Debuging
 	bool debug;
 	double mpiTimeDebuging;
@@ -87,6 +74,7 @@ private:
 	map<int, bool> neighbors_ACK_SERVED_buffer;
 	map<int, bool> neighbors_ACK_BEING_SERVED_buffer;
 	map<int, pair<bool, int>> neighbors_MSG_ENUMERNODES_buffer; //Stores answers (values) received in 'MSG_ENUMERNODES'
+	map<int, bool> neighbors_ENDED_EXEC_buffer;
 
 	//Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})
 	map<int, pair<double, double>> my_coordinates;
@@ -109,7 +97,8 @@ private:
 		MSG_BEING_SERVED,  // 5# Used by a node v (in N(u)) to let all N(v) know the mule is serving it
 		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
 		ACK_BEING_SERVED, // 7# Msg acknowledging that node a node in N(v) knows that v has been served
-		SEND_END // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
+		SEND_END, // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
+		UPDATE_MSG_TOTAL_COUNT // 9# Msg utilize to update sensor 0 (id 0) track of total messages sent
 	};
 	
 	//Methods utilized to select node where the mule will be sent to
@@ -154,6 +143,7 @@ private:
 	void pauseExec(void);
 	void debugMesseging(int receiver, string msg);
 	void errorHasOccoured(string msg);
+	void printSolutionMetrics(void);
 };
 
 #endif

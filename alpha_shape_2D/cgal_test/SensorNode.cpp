@@ -4,14 +4,22 @@
 
 using namespace std;
 
+/* Public Methods */
+
 //Constructor.
 SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) {
-	//Saving neighbor selection method chosen
-	selected = GREEDY;
-
 	//Starting debug properties
 	debug = shouldDebug;
 	mpiTimeDebuging = MPI_Wtime();
+
+	//When debbuging the sensor says's hi
+	if (shouldDebug)
+	{
+		cout << "Sensor #" << sensorId << " has started operating at " << mpiTimeDebuging << "." << endl;
+	}
+
+	//Saving neighbor selection method chosen
+	selected = GREEDY;
 
 	//Progran execution starting now
 	endExec = false;
@@ -63,7 +71,8 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 	}
 	instance_file.close();
 
-	totalNodes = stoi(file_lines[0]); //Setting total number of nodes (1st line of the file)
+	//Setting total number of nodes (1st line of the file)
+	totalNodes = stoi(file_lines[0]);
 
 	//Utils local variables.
 	string str;
@@ -97,7 +106,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 	string neighbors_count = "";
 	vector<string> split_vector;
 
-	istringstream iss(file_lines[nodeNeighborsFileLine - 1]);
+	istringstream iss(file_lines[nodeNeighborsFileLine - 1]); //TODO - check why compiler doesnt like it
 
 	for (string s; iss >> s; ) {
 		split_vector.push_back(s);
@@ -112,6 +121,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 		neighbors_ACK_BEING_SERVED_buffer[stoi(split_vector[i])] = false;
 		neighbors_ACK_SERVED_buffer[stoi(split_vector[i])] = false;
 		neighbors_MSG_ENUMERNODES_buffer[stoi(split_vector[i])] = make_pair<bool, int>(false, -1);
+		neighbors_ENDED_EXEC_buffer[stoi(split_vector[i])] = false;
 
 		//Get neighbor coordinates
 		int neighborFileLine = stoi(split_vector[i]) + 1;
@@ -131,33 +141,82 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 		my_neighbors_xy[stoi(split_vector[i])] = neighbor_coord;
 	}
 
-	unattendedNeigbors = stoi(split_vector[0]); //Initially all neighbors are unattended
+	//Initially all neighbors are unattended
+	unattendedNeigbors = stoi(split_vector[0]);
 
-	//cout << "MY_ID: " << nodeId << " | " << "MY_COORDINATES: " << my_xy.first << ", " << my_xy.second << " | NEIGHBORS_LINE_INDEX: " << nodeNeighborsFileLine << endl;
-	//cout << endl << endl;
+	//Start sensor
+	initializeSensorNode();
 }
 
 //Destructor.
 SensorNode::~SensorNode() {
+	//TODO - method to check weather the node has had any issues (like if it has not been served).
 	if (debug)
 	{
 		cout << "Sensor #" << nodeId << " has resumed operating." << endl;
 	}
-	//TODO - method to check weather the node has had any issues (like if it has not been served).
+
+	//Closing last sensor on the network
+	if (nodeId == 0) {
+		//TODO - method to return the answer here.
+		cout << "\n# steps made by the mule: " << steps << endl;
+	}
 }
 
+//Sensor initializer
+void SensorNode::initializeSensorNode(void) {
+	if (nodeId == 0)
+	{
+		muleOn1stSensorStart();
+	}
 
-/* Methods - setters */
-//Node.
-//Execution.
-//Metrics.
-//Utils.
+	int node = 0; //Reference to the id of the node sending the incoming msg
 
+	while (!endExec) {
+		/* Listen for the msgs here */
+		MPI_Recv(&infoRec, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &statusReq);
 
-/* Methods - getters */
-//Node.
-//Execution.
-//Metrics.
+		//Saving who has sent me the msg
+		u = statusReq.MPI_SOURCE;
+
+		//Make message_type-based action upon message arrival
+		switch (statusReq.MPI_TAG)
+		{
+		case MSG_SERVED:
+			msgServedReceived();
+			break;
+		case ACK_SERVED:
+			msgAckServedReceived();
+			break;
+		case MSG_BEING_SERVED:
+			msgBeingServedReceived();
+			break;
+		case ACK_BEING_SERVED:
+			msgAckBeingServedReceived();
+			break;
+		case MSG_REQUEST:
+			msgRequestReceived();
+			break;
+		case MSG_ENUMERNODES:
+			msgEnumernodesReceived();
+			break;
+		case SEND_MULE:
+			msgSendMuleReceived();
+			break;
+		case SEND_END:
+			broadcastProgramTermination();
+			break;
+		default:
+			errorHasOccoured("Message received and not processed");
+			break;
+		}
+	}
+
+	return;
+}
+
+/* Private Methods */
+
 //Utils.
 void SensorNode::pauseExec(void) {
 	int a;
@@ -183,6 +242,11 @@ void SensorNode::debugMesseging(int receiver, string msg) {
 	return;
 }
 
+void SensorNode::printSolutionMetrics(void) {
+	return;
+}
+
+//Sensor execution related
 void SensorNode::resetNeigAckServedSentBackBuffer(void) {
 	for (int i = 0; i < my_neighbors_ids.size(); ++i)
 	{
@@ -322,7 +386,7 @@ int SensorNode::methodOfChoice(void) {
 	}
 
 	//Error checking
-	if (selectedNeighbor = -1)
+	if (selectedNeighbor == -1)
 	{
 		errorHasOccoured("Neighbor selection to send the mule didn't return anything");
 	}
@@ -330,7 +394,7 @@ int SensorNode::methodOfChoice(void) {
 	return selectedNeighbor;
 }
 
-/* Private Methods */
+//Message arrival related
 void SensorNode::muleOn1stSensorStart(void) {
 	parentId = 0; //1st node to be visited ("Base Station")
 	served = true; //Mule is serving me right now
@@ -584,9 +648,6 @@ void SensorNode::msgEnumernodesReceived(void) {
 				//Flaging end of processing of the network
 				endExec = true;
 
-				//TODO - method to return the answer here.
-				cout << "\n# steps made by the mule: " << steps << endl;
-
 				//Broadcasting to my neighbors
 				for (int i = 0; i < my_neighbors_ids.size(); i++)
 				{
@@ -689,55 +750,4 @@ void SensorNode::broadcastProgramTermination(void) {
 	{
 		MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], SEND_END, MPI_COMM_WORLD);
 	}
-}
-
-void SensorNode::initializeSensorNode(int id) {
-	if (id == 0)
-	{
-		muleOn1stSensorStart();
-	}
-
-	int node = 0; //Reference to the id of the node sending the incoming msg
-
-	while (!endExec) {
-		/* Listen for the msgs here */
-		MPI_Recv(&infoRec, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &statusReq);
-
-		//Saving who has sent me the msg
-		u = statusReq.MPI_SOURCE;
-
-		//Make message_type-based action upon message arrival
-		switch (statusReq.MPI_TAG)
-		{
-			case MSG_SERVED:
-				msgServedReceived();
-				break;
-			case ACK_SERVED:
-				msgAckServedReceived();
-				break;
-			case MSG_BEING_SERVED:
-				msgBeingServedReceived();
-				break;
-			case ACK_BEING_SERVED:
-				msgAckBeingServedReceived();
-				break;
-			case MSG_REQUEST:
-				msgRequestReceived();
-				break;
-			case MSG_ENUMERNODES:
-				msgEnumernodesReceived();
-				break;
-			case SEND_MULE:
-				msgSendMuleReceived();
-				break;
-			case SEND_END:
-				broadcastProgramTermination();
-				break;
-			default:
-				errorHasOccoured("Message received and not processed");
-				break;
-		}
-	}
-
-	return;
 }
