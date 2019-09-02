@@ -159,7 +159,10 @@ SensorNode::~SensorNode() {
 	//Closing last sensor on the network
 	if (nodeId == 0) {
 		//TODO - method to return the answer here.
-		cout << "\n# steps made by the mule: " << steps << endl;
+		cout << "\n\n________________ SOLUTION FOUND ________________\n\n";
+		cout << "Total movements made by the mule: " << steps << endl;
+		cout << "Total messages exchanged within the net: " << totalMsgsSent << endl;
+		cout << "________________________________________________\n\n";
 	}
 }
 
@@ -205,6 +208,9 @@ void SensorNode::initializeSensorNode(void) {
 			break;
 		case SEND_END:
 			broadcastProgramTermination();
+			break;
+		case UPDATE_MSG_TOTAL_COUNT:
+			totalMsgsSent++;
 			break;
 		default:
 			errorHasOccoured("Message received and not processed");
@@ -422,6 +428,15 @@ void SensorNode::muleOn1stSensorStart(void) {
 		//Updating metrics variables
 		cont_TOTAL_MSGS_SENT++;
 		cont_MSG_SERVED++;
+
+		//Updating total count of msgs sent
+		if (nodeId != 0)
+		{
+			MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+		}
+		else {
+			totalMsgsSent++;
+		}
 	}
 }
 
@@ -453,6 +468,15 @@ void SensorNode::msgServedReceived() {
 			//Updating metrics variables
 			cont_TOTAL_MSGS_SENT++;
 			cont_ACK_BEING_SERVED++;
+
+			//Updating total count of msgs sent
+			if (nodeId != 0)
+			{
+				MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+			}
+			else {
+				totalMsgsSent++;
+			}
 		}
 		else {
 			//Returns an elapsed time on the calling processor
@@ -476,6 +500,15 @@ void SensorNode::msgServedReceived() {
 					//Updating metrics variables
 					cont_TOTAL_MSGS_SENT++;
 					cont_MSG_BEING_SERVED++;
+
+					//Updating total count of msgs sent
+					if (nodeId != 0)
+					{
+						MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+					}
+					else {
+						totalMsgsSent++;
+					}
 				}
 			}
 		}
@@ -492,6 +525,15 @@ void SensorNode::msgServedReceived() {
 		//Updating metrics variables
 		cont_TOTAL_MSGS_SENT++;
 		cont_ACK_SERVED++;
+
+		//Updating total count of msgs sent
+		if (nodeId != 0)
+		{
+			MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+		}
+		else {
+			totalMsgsSent++;
+		}
 	}
 }
 
@@ -514,6 +556,15 @@ void SensorNode::msgBeingServedReceived() {
 	//Updating metrics variables
 	cont_TOTAL_MSGS_SENT++;
 	cont_ACK_BEING_SERVED++;
+
+	//Updating total count of msgs sent
+	if (nodeId != 0)
+	{
+		MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+	}
+	else {
+		totalMsgsSent++;
+	}
 
 	return;
 }
@@ -552,6 +603,15 @@ void SensorNode::msgAckServedReceived() {
 			//Updating metrics variables
 			cont_TOTAL_MSGS_SENT++;
 			cont_MSG_REQUEST++;
+
+			//Updating total count of msgs sent
+			if (nodeId != 0)
+			{
+				MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+			}
+			else {
+				totalMsgsSent++;
+			}
 		}
 	}
 
@@ -581,6 +641,15 @@ void SensorNode::msgAckBeingServedReceived(void) {
 		//Updating metrics variables
 		cont_TOTAL_MSGS_SENT++;
 		cont_ACK_SERVED++;
+
+		//Updating total count of msgs sent
+		if (nodeId != 0)
+		{
+			MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+		}
+		else {
+			totalMsgsSent++;
+		}
 	}
 
 
@@ -600,6 +669,15 @@ void SensorNode::msgRequestReceived(void) {
 	//Updating metrics variables
 	cont_TOTAL_MSGS_SENT++;
 	cont_MSG_ENUMERNODES++;
+
+	//Updating total count of msgs sent
+	if (nodeId != 0)
+	{
+		MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+	}
+	else {
+		totalMsgsSent++;
+	}
 
 	return;
 }
@@ -638,6 +716,15 @@ void SensorNode::msgEnumernodesReceived(void) {
 			//Updating metrics variables
 			cont_TOTAL_MSGS_SENT++;
 			cont_SEND_MULE++;
+
+			//Updating total count of msgs sent
+			if (nodeId != 0)
+			{
+				MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+			}
+			else {
+				totalMsgsSent++;
+			}
 		}
 		else {
 			//All neighbors served
@@ -667,6 +754,15 @@ void SensorNode::msgEnumernodesReceived(void) {
 				//Updating metrics variables
 				cont_TOTAL_MSGS_SENT++;
 				cont_SEND_MULE++;
+
+				//Updating total count of msgs sent
+				if (nodeId != 0)
+				{
+					MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+				}
+				else {
+					totalMsgsSent++;
+				}
 			}
 		}
 	}
@@ -714,6 +810,15 @@ void SensorNode::msgSendMuleReceived(void) {
 				//Updating metrics variables
 				cont_TOTAL_MSGS_SENT++;
 				cont_MSG_SERVED++;
+
+				//Updating total count of msgs sent
+				if (nodeId != 0)
+				{
+					MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+				}
+				else {
+					totalMsgsSent++;
+				}
 			}
 		}
 	}
@@ -735,6 +840,15 @@ void SensorNode::msgSendMuleReceived(void) {
 			//Updating metrics variables
 			cont_TOTAL_MSGS_SENT++;
 			cont_MSG_REQUEST++;
+
+			//Updating total count of msgs sent
+			if (nodeId != 0)
+			{
+				MPI_Send(&infoSent, 1, MPI_INT, 0, UPDATE_MSG_TOTAL_COUNT, MPI_COMM_WORLD);
+			}
+			else {
+				totalMsgsSent++;
+			}
 		}
 	}
 
