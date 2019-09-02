@@ -57,7 +57,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 
 	instance_file.open(instanceFileName);
 
-	if (instance_file.fail())
+	if (instance_file.fail() || instance_file.bad())
 	{
 		errorHasOccoured("Fail oppening the instance file");
 	}

@@ -36,7 +36,8 @@ int myId, numOfProcs;
 int main(int argc, char* argv[])
 {
 	/* Debug variables */
-	bool shouldDebug = false;
+	string s = argv[2];
+	bool shouldDebug = (s == "yes" ? true : false);
 
 	/* Initializing MPI parallelism */
 	MPI_Init(&argc, &argv);
@@ -44,7 +45,8 @@ int main(int argc, char* argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &myId);
 
 	/* Consuming instance file and initializing network nodes */
-	string instanceFileName = "./test_instances/instance_input_test00.dat";
+	string instanceFileName = "./test_instances/";
+	instanceFileName.append(argv[1]);
 
 	/* Constructor of the class consumes the instance and initializes the sensor accordingly */
 	SensorNode u(instanceFileName, myId, shouldDebug);
