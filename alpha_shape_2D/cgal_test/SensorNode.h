@@ -85,7 +85,8 @@ private:
 		MSG_BEING_SERVED,  // 5# Used by a node v (in N(u)) to let all N(v) know the mule is serving it
 		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
 		ACK_BEING_SERVED, // 7# Msg acknowledging that node a node in N(v) knows that v has been served
-		SEND_END // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
+		SEND_END, // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
+		SAVE_MSGING_COUNT
 	};
 
 	int totalMsgsSent, localMsgsSentCounter, neighborsSentCounter;
