@@ -45,8 +45,9 @@ int main(int argc, char* argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &myId);
 
 	/* Consuming instance file and initializing network nodes */
-	string instanceFileName = "./test_instances/";
+	string instanceFileName = "./";
 	instanceFileName.append(argv[1]);
+	instanceFileName.append(".dat");
 
 	/* Constructor of the class consumes the instance and initializes the sensor accordingly */
 	SensorNode u(instanceFileName, myId, shouldDebug);

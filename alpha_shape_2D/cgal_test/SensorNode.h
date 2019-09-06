@@ -20,6 +20,9 @@ public:
 	SensorNode(string instanceFileName, int sensorId, bool shouldDebug);
 	~SensorNode();
 
+	/* Getters */
+	int getTotalMsgsSent(void);
+
 	/* Setters */
 	void initializeSensorNode(void);
 private:
@@ -40,10 +43,8 @@ private:
 	int cont_MSG_REQUEST;
 	int cont_TOTAL_MSGS_SENT;
 	int cont_MSG_ENUMERNODES;
-
 	int cont_MSG_SERVED;
 	int cont_ACK_SERVED;
-
 	int cont_MSG_BEING_SERVED;
 	int cont_ACK_BEING_SERVED;
 
@@ -53,19 +54,6 @@ private:
 	//TODO - maybe set 'isMuleWithMe' when mule gets out of a node and have another one to track where it is
 
 	//Metrics related properties.
-	//REVIEW - need to validate this
-	double startServeTime;
-	double endServeTime;
-
-	double startServedTime;
-	double endServedTime;
-
-	double startRequestTime;
-	double endRequestTime;
-
-	double maxTime; //?
-
-	int totalMsgsSent; //Counts how many messages have been sent to serve the whole network
 
 	//Debuging
 	bool debug;
@@ -74,7 +62,7 @@ private:
 	map<int, bool> neighbors_ACK_SERVED_buffer;
 	map<int, bool> neighbors_ACK_BEING_SERVED_buffer;
 	map<int, pair<bool, int>> neighbors_MSG_ENUMERNODES_buffer; //Stores answers (values) received in 'MSG_ENUMERNODES'
-	map<int, bool> neighbors_ENDED_EXEC_buffer;
+	map<int, bool> neighbors_MSGING_COUNT_buffer; //Marks wich neighbors have sent me their updated # of sent msg before sending the mule;
 
 	//Botton two properties are used to calculate the Alpha-Shape of (N(u) U {u})
 	map<int, pair<double, double>> my_coordinates;
@@ -97,9 +85,10 @@ private:
 		MSG_BEING_SERVED,  // 5# Used by a node v (in N(u)) to let all N(v) know the mule is serving it
 		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
 		ACK_BEING_SERVED, // 7# Msg acknowledging that node a node in N(v) knows that v has been served
-		SEND_END, // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
-		UPDATE_MSG_TOTAL_COUNT // 9# Msg utilize to update sensor 0 (id 0) track of total messages sent
+		SEND_END // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
 	};
+
+	int totalMsgsSent, localMsgsSentCounter, neighborsSentCounter;
 	
 	//Methods utilized to select node where the mule will be sent to
 	enum selection_method {
@@ -113,6 +102,7 @@ private:
 
 	MPI_Status statusReq;
 	MPI_Request statusSend;
+	ofstream resultsOutFile;
 
 	/* Methods */
 	void muleOn1stSensorStart(void);
@@ -125,6 +115,7 @@ private:
 	bool checkAllNeighborFlagAckBeingServedReceived(void); //Marks that a neighbor have sent 'ACK_BEING_SERVED' back
 	bool checkAllMsgEnumernodesReceived(void); //Checks whether or not all of my N(u) have sent me their updated # of neighbors remaining to be attended by the mule
 	bool workToBeDoneStill(void); //Checks if there is any neighbor with its own neighbors waiting to be served
+	bool allUpdateMsgCountReivedBack(void);
 
 	int methodOfChoice(void);
 	int makeGreedySelection(void);
