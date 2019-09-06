@@ -21,7 +21,6 @@ public:
 	~SensorNode();
 
 	/* Getters */
-	int getTotalMsgsSent(void);
 
 	/* Setters */
 	void initializeSensorNode(void);
@@ -38,22 +37,14 @@ private:
 	int parentId; //The parent of the node within the mules path on the network
 	int steps; //# of movements made by the mule thus far
 
-	//Counters associated with experiment metrics.
-	int	cont_SEND_MULE;
-	int cont_MSG_REQUEST;
-	int cont_TOTAL_MSGS_SENT;
-	int cont_MSG_ENUMERNODES;
-	int cont_MSG_SERVED;
-	int cont_ACK_SERVED;
-	int cont_MSG_BEING_SERVED;
-	int cont_ACK_BEING_SERVED;
-
-
 	bool endExec; //Flags the end of the execiton
 	bool isMuleWithMe; //Checks whether or not the mule is at the current node
 	//TODO - maybe set 'isMuleWithMe' when mule gets out of a node and have another one to track where it is
 
 	//Metrics related properties.
+
+	//Utils metrics
+	string instanceName;
 
 	//Debuging
 	bool debug;
@@ -86,7 +77,7 @@ private:
 		ACK_SERVED, // 6# Msg acknowledging that node v knows that u has been served (sent only when all N(v) have sent 'ACK_BEING_SERVED')
 		ACK_BEING_SERVED, // 7# Msg acknowledging that node a node in N(v) knows that v has been served
 		SEND_END, // 8# Msg breadcasted to the process in order to let 'em know the exectuion has to terminate
-		SAVE_MSGING_COUNT
+		SAVE_MSGING_COUNT // 9# Let's the base station (node 0) knows that it must update the counter holding the total count of msgs sent (up to the point when the mule was last moved)
 	};
 
 	int totalMsgsSent, localMsgsSentCounter, neighborsSentCounter;

@@ -83,16 +83,6 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 	endExec = false;
 	steps = 0; //Mule has made no moves yet
 
-	//Messages counter variables
-	cont_SEND_MULE = 0;
-	cont_MSG_REQUEST = 0;
-	cont_MSG_ENUMERNODES = 0;
-	cont_MSG_SERVED = 0;
-	cont_MSG_BEING_SERVED = 0;
-	cont_ACK_SERVED = 0;
-	cont_ACK_BEING_SERVED = 0;
-	cont_TOTAL_MSGS_SENT = 0;
-
 	//Starting node associated variables
 	isMuleWithMe = false; //Mule has made no moves thus far
 	nodeId = sensorId; //Saving process id (aka nodeId; aka sensorId)
@@ -102,19 +92,14 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) 
 	infoRec = 0; //No info received thus far
 
 	totalMsgsSent = 0;
-	localMsgsSentCounter = 0;
-	neighborsSentCounter = 0;
-
-	/* Saving results to text file */
-	//string out_name = "rat195_";
-	//string myId = to_string(sensorId);
-
-	//out_name.append(myId);
-	//out_name.append("_totalMsgsSentByNodes.txt");
-	//resultsOutFile.open(out_name, std::ofstream::out | std::ofstream::app);
+	localMsgsSentCounter = 0; //Counts msgs sent locally
+	neighborsSentCounter = 0; //Counts msgs sent locally by my neighbors to me
 
 	//Opening file containing problem's instance in the form of a graph
 	ifstream instance_file;
+
+	//Saving instance name
+	instanceName = instanceFileName;
 
 	instance_file.open(instanceFileName);
 
@@ -221,14 +206,12 @@ SensorNode::~SensorNode() {
 	if (nodeId == 0) {
 		//TODO - method to return the answer here.
 		cout << "\n\n________________ SOLUTION FOUND ________________\n\n";
-		cout << "Total movements made by the mule: " << steps << endl;
-		cout << "Total messages exchanged within the net: " << totalMsgsSent << endl;
+		cout << "Mule movements: " << steps << endl;
+		cout << "Messages sent:  " << totalMsgsSent << endl;
+		cout << "Nodes count:    " << totalNodes << endl;
+		cout << "Instance:       " << instanceName << endl;
 		cout << "________________________________________________\n\n";
 	}
-}
-
-int SensorNode::getTotalMsgsSent(void) {
-	return cont_TOTAL_MSGS_SENT;
 }
 
 /* Private Methods */
@@ -427,6 +410,7 @@ int SensorNode::methodOfChoice(void) {
 
 //Message arrival related
 void SensorNode::muleOn1stSensorStart(void) {
+	//Reseting msging counting helpers
 	localMsgsSentCounter = 0;
 	neighborsSentCounter = 0;
 
@@ -453,14 +437,12 @@ void SensorNode::muleOn1stSensorStart(void) {
 		MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_SERVED, MPI_COMM_WORLD);
 
 		//Updating metrics variables
-		cont_TOTAL_MSGS_SENT++;
-		cont_MSG_SERVED++;
-
 		localMsgsSentCounter++; //Increase # of local msgs sent (MSG_SERVED)
 	}
 }
 
 void SensorNode::msgServedReceived() {
+	//Reseting msging counting helpers
 	localMsgsSentCounter = 0;
 	neighborsSentCounter = 0;
 
@@ -490,10 +472,6 @@ void SensorNode::msgServedReceived() {
 			//Let u know I recognize he has been served
 			infoSent = localMsgsSentCounter;
 			MPI_Send(&infoSent, 1, MPI_INT, u, ACK_SERVED, MPI_COMM_WORLD);
-
-			//Updating metrics variables
-			cont_TOTAL_MSGS_SENT++;
-			cont_ACK_BEING_SERVED++;
 		}
 		else {
 			//Reseting flag that marks the event of a N(v) having sent 'ACK_BEING_SERVED' back - except my parent node (mule is there)
@@ -512,9 +490,6 @@ void SensorNode::msgServedReceived() {
 					MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_BEING_SERVED, MPI_COMM_WORLD);
 
 					//Updating metrics variables
-					cont_TOTAL_MSGS_SENT++;
-					cont_MSG_BEING_SERVED++;
-
 					localMsgsSentCounter++; //Increase # of msgs sent (MSG_BEING_SERVED)
 				}
 			}
@@ -530,10 +505,6 @@ void SensorNode::msgServedReceived() {
 		//Let my N(v) know I'm being served (my parent node is with the mule at this moment talking to me)
 		infoSent = localMsgsSentCounter;
 		MPI_Send(&infoSent, 1, MPI_INT, u, ACK_SERVED, MPI_COMM_WORLD);
-
-		//Updating metrics variables
-		cont_TOTAL_MSGS_SENT++;
-		cont_ACK_SERVED++;
 	}
 }
 
@@ -563,9 +534,6 @@ void SensorNode::msgAckServedReceived() {
 				MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
 
 				//Updating metrics variables
-				cont_TOTAL_MSGS_SENT++;
-				cont_MSG_REQUEST++;
-
 				localMsgsSentCounter += 2; //Increase local count by x2 (account for N(u) reply)
 			}
 		}
@@ -593,10 +561,6 @@ void SensorNode::msgBeingServedReceived() {
 	infoSent = 1;
 	MPI_Send(&infoSent, 1, MPI_INT, u, ACK_BEING_SERVED, MPI_COMM_WORLD);
 
-	//Updating metrics variables
-	cont_TOTAL_MSGS_SENT++;
-	cont_ACK_BEING_SERVED++;
-
 	return;
 }
 
@@ -616,10 +580,6 @@ void SensorNode::msgAckBeingServedReceived(void) {
 		//Let who sent the message now I'm acknowledging that the mule is serving it
 		infoSent = (localMsgsSentCounter + neighborsSentCounter); //Send if back to my parent
 		MPI_Send(&infoSent, 1, MPI_INT, parentId, ACK_SERVED, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
-
-		//Updating metrics variables
-		cont_TOTAL_MSGS_SENT++;
-		cont_ACK_SERVED++;
 	}
 
 
@@ -638,10 +598,6 @@ void SensorNode::msgRequestReceived(void) {
 	//Sending the # of yet to be served neighbors I have to whoever sent me 'MSG_REQUEST' (my parent)
 	MPI_Send(&infoSent, 1, MPI_INT, u, MSG_ENUMERNODES, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
 
-	//Updating metrics variables
-	cont_TOTAL_MSGS_SENT++;
-	cont_MSG_ENUMERNODES++;
-
 	return;
 }
 
@@ -656,6 +612,7 @@ void SensorNode::msgEnumernodesReceived(void) {
 		//I still have to send the mule to someone - one of my neighbors have neighbor(s) yet to be served
 		if (workToBeDoneStill())
 		{
+			//Mule will be moved - update total msgs sent thus far
 			if (nodeId != 0)
 			{
 				infoSent = (localMsgsSentCounter + neighborsSentCounter);
@@ -665,6 +622,7 @@ void SensorNode::msgEnumernodesReceived(void) {
 				totalMsgsSent += (localMsgsSentCounter + neighborsSentCounter);
 			}
 
+			//Reseting msging counting helpers
 			localMsgsSentCounter = 0;
 			neighborsSentCounter = 0;
 
@@ -679,9 +637,6 @@ void SensorNode::msgEnumernodesReceived(void) {
 
 			//Sending the # of yet to be served neighbors I have to whoever sent me 'MSG_REQUEST' (my parent)
 			MPI_Send(&infoSent, 1, MPI_INT, choseNeighbor, SEND_MULE, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
-
-			//Updating metrics variables
-			cont_SEND_MULE++;
 		}
 		else {
 			//All neighbors served
@@ -689,6 +644,7 @@ void SensorNode::msgEnumernodesReceived(void) {
 			//Im at the 1st node (and there are no more neighbors to be served) - RESCUME EXECUTION
 			if (nodeId == 0)
 			{
+				//Update total msgs sent thus far by the last time - all msgs accounted
 				totalMsgsSent += (localMsgsSentCounter + neighborsSentCounter);
 
 				//Flaging end of processing of the network
@@ -701,6 +657,7 @@ void SensorNode::msgEnumernodesReceived(void) {
 				}
 			}
 			else {
+				//Mule will be moved - update total msgs sent thus far
 				if (nodeId != 0)
 				{
 					infoSent = (localMsgsSentCounter + neighborsSentCounter);
@@ -710,6 +667,7 @@ void SensorNode::msgEnumernodesReceived(void) {
 					totalMsgsSent += (localMsgsSentCounter + neighborsSentCounter);
 				}
 
+				//Reseting msging counting helpers
 				localMsgsSentCounter = 0;
 				neighborsSentCounter = 0;
 
@@ -721,9 +679,6 @@ void SensorNode::msgEnumernodesReceived(void) {
 
 				//Send mule back to my parent
 				MPI_Send(&infoSent, 1, MPI_INT, parentId, SEND_MULE, MPI_COMM_WORLD); //REVIEW - maybe Pablo is sending to the wrong place here
-
-				//Updating metrics variables
-				cont_SEND_MULE++;
 			}
 		}
 	}
@@ -732,6 +687,7 @@ void SensorNode::msgEnumernodesReceived(void) {
 }
 
 void SensorNode::msgSendMuleReceived(void) {
+	//Reseting msging counting helpers
 	neighborsSentCounter = 0;
 	localMsgsSentCounter = 0;
 
@@ -769,9 +725,6 @@ void SensorNode::msgSendMuleReceived(void) {
 				MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_SERVED, MPI_COMM_WORLD);
 
 				//Updating metrics variables
-				cont_TOTAL_MSGS_SENT++;
-				cont_MSG_SERVED++;
-
 				localMsgsSentCounter++; //Increase local count of msgs sent (MSG_SERVED)
 			}
 		}
@@ -792,9 +745,6 @@ void SensorNode::msgSendMuleReceived(void) {
 			MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
 
 			//Updating metrics variables
-			cont_TOTAL_MSGS_SENT++;
-			cont_MSG_REQUEST++;
-
 			localMsgsSentCounter += 2; //Increse local count by x2 (account for N(u) reply)
 		}
 	}
@@ -805,9 +755,6 @@ void SensorNode::msgSendMuleReceived(void) {
 void SensorNode::broadcastProgramTermination(void) {
 	//Program termination required
 	endExec = true;
-
-	//resultsOutFile << cont_TOTAL_MSGS_SENT << "\n";
-	//resultsOutFile.close();
 
 	//Broadcasting to my neighbors
 	for (int i = 0; i < my_neighbors_ids.size(); i++)
