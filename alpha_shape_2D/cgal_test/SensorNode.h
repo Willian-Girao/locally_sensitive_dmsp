@@ -39,7 +39,8 @@ private:
 
 	bool endExec; //Flags the end of the execiton
 	bool isMuleWithMe; //Checks whether or not the mule is at the current node
-	//TODO - maybe set 'isMuleWithMe' when mule gets out of a node and have another one to track where it is
+	bool hasMuleBeenWithMe; //Checks whether or not the mule has passed by the node at some point - INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
+	bool backtracking;
 
 	//Metrics related properties.
 
@@ -124,7 +125,7 @@ private:
 
 	//Utils.
 	void pauseExec(void);
-	void debugMesseging(int receiver, string msg);
+	void debugMesseging(int receiver, string msg, int payload);
 	void errorHasOccoured(string msg);
 	void printSolutionMetrics(void);
 };
