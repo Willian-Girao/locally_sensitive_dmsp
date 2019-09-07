@@ -82,7 +82,7 @@ private:
 		SAVE_MSGING_COUNT // 9# Let's the base station (node 0) knows that it must update the counter holding the total count of msgs sent (up to the point when the mule was last moved)
 	};
 
-	int totalMsgsSent, localMsgsSentCounter, neighborsSentCounter;
+	int totalMsgsSent, will;
 	
 	//Methods utilized to select node where the mule will be sent to
 	enum selection_method {
