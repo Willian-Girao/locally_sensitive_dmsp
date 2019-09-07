@@ -237,7 +237,12 @@ void SensorNode::debugMesseging(int receiver, string msg, int payload) {
 		
 		if (payload >= 0)
 		{
-			cout << "\n" << nodeId << " " << msg << " " << receiver << " [" << payload << "]	- " << (tf - mpiTimeDebuging) << "ms" << endl;
+			cout << "\n" << nodeId << " " << msg << " " << receiver << " [" << payload << "]	- " << (tf - mpiTimeDebuging) << "ms";
+			if (backtracking)
+			{
+				cout << " - b";
+			}
+			cout << endl;
 		} else if (msg == "SEND_MULE") {
 			cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
 		} else {
@@ -334,6 +339,25 @@ bool SensorNode::checkAllMsgEnumernodesReceived(void) {
 			{
 				allReceived = false;
 			}
+		}
+	}
+
+	if (nodeId == 45)
+	{
+		cout << "\n\n----\n\n";
+		for (int i = 0; i < my_neighbors_ids.size(); i++)
+		{
+			if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first)
+			{
+				cout << my_neighbors_ids[i] << " -> True." << endl;
+			} else {
+				cout << my_neighbors_ids[i] << " -> False." << endl;
+			}
+		}
+
+		if (backtracking)
+		{
+			cout << "Backtracking." << endl;
 		}
 	}
 
@@ -537,6 +561,25 @@ void SensorNode::msgAckServedReceived() {
 	{
 		//Resenting the counting of # of yet to be served neighbors of each of my neighbors
 		resetNeigEnumernodesBuffer();
+
+		if (nodeId == 45 && backtracking)
+		{
+			/*
+				ERROR:	I'm starting to backtrack here but I'm not setting on the 'neighbors_MSG_ENUMERNODES_buffer' buffer
+						the sensor that has sent me the mule back.
+
+				FIX:
+						if (backtracking)
+						{
+							neighbors_MSG_ENUMERNODES_buffer[u].first = true; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
+							neighbors_MSG_ENUMERNODES_buffer[u].second = 0; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
+						}
+						
+				u:		8 (validated with debugging msg)
+
+			*/
+			cout << "------------->" << endl;
+		}
 
 		//Requesting number of yet to be served neighbors of my neighbors
 		for (int i = 0; i < my_neighbors_ids.size(); i++)
