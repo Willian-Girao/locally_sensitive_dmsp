@@ -49,7 +49,6 @@ void SensorNode::initializeSensorNode(void) {
 		case SAVE_MSGING_COUNT:
 			if (nodeId == 0)
 			{
-				cout << infoRec << endl;
 				totalMsgsSent += infoRec;
 			}
 			break;
@@ -684,7 +683,6 @@ void SensorNode::msgEnumernodesReceived(void) {
 				infoSent = 0;
 			}
 			else {
-				cout << will << endl;
 				totalMsgsSent += will;
 			}
 
@@ -711,7 +709,6 @@ void SensorNode::msgEnumernodesReceived(void) {
 			{
 				//Update total msgs sent thus far by the last time - all msgs accounted
 				totalMsgsSent += will;
-				cout << will << endl;
 
 				//Flaging end of processing of the network
 				endExec = true;
@@ -733,7 +730,6 @@ void SensorNode::msgEnumernodesReceived(void) {
 					infoSent = 0;
 				}
 				else {
-					cout << will << endl;
 					totalMsgsSent += will;
 				}
 
