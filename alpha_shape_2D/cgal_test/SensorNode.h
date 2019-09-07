@@ -17,7 +17,7 @@ using namespace std;
 class SensorNode {
 public:
 	//Constructor of the class consumes the instance and initializes the sensor accordingly
-	SensorNode(string instanceFileName, int sensorId, bool shouldDebug);
+	SensorNode(string instanceFileName, int sensorId, bool shouldDebug, int shouldDebugLevel);
 	~SensorNode();
 
 	/* Getters */
@@ -49,6 +49,7 @@ private:
 
 	//Debuging
 	bool debug;
+	int debugLevel;
 	double mpiTimeDebuging;
 
 	map<int, bool> neighbors_ACK_SERVED_buffer;

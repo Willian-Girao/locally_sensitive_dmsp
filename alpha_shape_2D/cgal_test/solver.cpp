@@ -37,7 +37,9 @@ int main(int argc, char* argv[])
 {
 	/* Debug variables */
 	string s = argv[2];
+	string z = argv[3];
 	bool shouldDebug = (s == "yes" ? true : false);
+	int shouldDebugLevel = stoi(z);
 
 	/* Initializing MPI parallelism */
 	MPI_Init(&argc, &argv);
@@ -50,7 +52,7 @@ int main(int argc, char* argv[])
 	instanceFileName.append(".dat");
 
 	/* Constructor of the class consumes the instance and initializes the sensor accordingly */
-	SensorNode u(instanceFileName, myId, shouldDebug);
+	SensorNode u(instanceFileName, myId, shouldDebug, shouldDebugLevel);
 
 	/* Finalize the MPI environment. */
 	MPI_Finalize();

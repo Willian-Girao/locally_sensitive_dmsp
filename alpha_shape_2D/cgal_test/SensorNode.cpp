@@ -65,16 +65,11 @@ void SensorNode::initializeSensorNode(void) {
 }
 
 //Constructor.
-SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug) {
+SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, int shouldDebugLevel) {
 	//Starting debug properties
 	debug = shouldDebug;
+	debugLevel = shouldDebugLevel;
 	mpiTimeDebuging = MPI_Wtime();
-
-	//When debbuging the sensor says's hi
-	// if (shouldDebug)
-	// {
-	// 	cout << "Sensor #" << sensorId << " has started operating at " << mpiTimeDebuging << "." << endl;
-	// }
 
 	//Saving neighbor selection method chosen
 	selected = GREEDY;
@@ -234,19 +229,32 @@ void SensorNode::debugMesseging(int receiver, string msg, int payload) {
 	if (debug)
 	{
 		double tf = MPI_Wtime();
-		
-		if (payload >= 0)
+
+		switch (debugLevel)
 		{
-			cout << "\n" << nodeId << " " << msg << " " << receiver << " [" << payload << "]	- " << (tf - mpiTimeDebuging) << "ms";
-			if (backtracking)
-			{
-				cout << " - b";
-			}
-			cout << endl;
-		} else if (msg == "SEND_MULE") {
-			cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
-		} else {
-			cout << "\n" << nodeId << " " << msg << " " << receiver << "	- " << (tf - mpiTimeDebuging) << "ms" << endl;
+			case 1:
+				if (payload >= 0)
+				{
+					cout << "\n" << nodeId << " " << msg << " " << receiver << " [" << payload << "]	- " << (tf - mpiTimeDebuging) << "ms";
+					cout << endl;
+				}
+				else if (msg == "SEND_MULE") {
+					cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
+				}
+				else {
+					cout << "\n" << nodeId << " " << msg << " " << receiver << "	- " << (tf - mpiTimeDebuging) << "ms" << endl;
+				}
+
+				break;
+			case 2:
+				if (msg == "SEND_MULE")
+				{
+					cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
+				}
+
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -312,7 +320,6 @@ bool SensorNode::checkAllNeighborFlagAckBeingServedReceived(void) {
 
 	for (int i = 0; i < my_neighbors_ids.size(); i++)
 	{
-		//TODO - set the parent's flag to true when receiving 'MSG_SERVED' so I wont have to check if its different from parentId down bellow.
 		if (neighbors_ACK_BEING_SERVED_buffer[my_neighbors_ids[i]] == false && my_neighbors_ids[i] != parentId)
 		{
 			allReceived = false;
@@ -342,25 +349,6 @@ bool SensorNode::checkAllMsgEnumernodesReceived(void) {
 		}
 	}
 
-	// if (nodeId == 45)
-	// {
-	// 	cout << "\n\n----\n\n";
-	// 	for (int i = 0; i < my_neighbors_ids.size(); i++)
-	// 	{
-	// 		if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first)
-	// 		{
-	// 			cout << my_neighbors_ids[i] << " -> True. (" << neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second << " )" << endl;
-	// 		} else {
-	// 			cout << my_neighbors_ids[i] << " -> False. (" << neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second << " )" << endl;
-	// 		}
-	// 	}
-
-	// 	if (backtracking)
-	// 	{
-	// 		cout << "Backtracking." << endl;
-	// 	}
-	// }
-
 	return allReceived;
 }
 
@@ -369,7 +357,6 @@ bool SensorNode::workToBeDoneStill(void) {
 
 	for (int i = 0; i < my_neighbors_ids.size(); i++)
 	{
-		//TODO - set the parent's flag to true when receiving 'MSG_SERVED' so I wont have to check if its different from parentId down bellow.
 		if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second > 0)
 		{
 			allWithZeroNeighborsToBeServed = true;
@@ -763,16 +750,7 @@ void SensorNode::msgEnumernodesReceived(void) {
 }
 
 void SensorNode::msgSendMuleReceived(void) {
-	// if (nodeId == 45)
-	// {
-	// 	cout << "Mule received here from u = " << u << endl;
-	// 	if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
-	// 	{
-	// 		cout << "backtracking = true;" << endl;
-	// 	}
-	// 	pauseExec();
-	// }
-
+	//Reseting counters
 	neighborsSentCounter = 0;
 	localMsgsSentCounter = 0;
 
@@ -782,15 +760,6 @@ void SensorNode::msgSendMuleReceived(void) {
 	//Mule has arrived at me for the 1st time - INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
 	if (!isMuleWithMe && !hasMuleBeenWithMe)
 	{
-		// if (nodeId == 45)
-		// {
-		// 	cout << "2 Mule received here from u = " << u << endl;
-		// 	if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
-		// 	{
-		// 		cout << "backtracking = true;" << endl;
-		// 	}
-		// 	pauseExec();
-		// }
 		//Mule has just arrived, can serve me and my N(u) - thus no pendent neighbors to be served left
 		unattendedNeigbors = 0;
 
@@ -833,15 +802,6 @@ void SensorNode::msgSendMuleReceived(void) {
 			}
 		}
 	} else if (hasMuleBeenWithMe) {
-		// if (nodeId == 45)
-		// {
-		// 	cout << "3 Mule received here from u = " << u << endl;
-		// 	if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
-		// 	{
-		// 		cout << "backtracking = true;" << endl;
-		// 	}
-		// 	pauseExec();
-		// }
 		//Mule has been sent here before and I have already be served - must check for neighbors that need the mule
 
 		//Mule is with me - again
