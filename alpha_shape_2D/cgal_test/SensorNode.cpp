@@ -231,7 +231,7 @@ void SensorNode::errorHasOccoured(string msg) {
 }
 
 void SensorNode::debugMesseging(int receiver, string msg, int payload) {
-	if (debug && msg == "SEND_MULE")
+	if (debug)
 	{
 		double tf = MPI_Wtime();
 		
@@ -342,24 +342,24 @@ bool SensorNode::checkAllMsgEnumernodesReceived(void) {
 		}
 	}
 
-	if (nodeId == 45)
-	{
-		cout << "\n\n----\n\n";
-		for (int i = 0; i < my_neighbors_ids.size(); i++)
-		{
-			if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first)
-			{
-				cout << my_neighbors_ids[i] << " -> True." << endl;
-			} else {
-				cout << my_neighbors_ids[i] << " -> False." << endl;
-			}
-		}
+	// if (nodeId == 45)
+	// {
+	// 	cout << "\n\n----\n\n";
+	// 	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	// 	{
+	// 		if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first)
+	// 		{
+	// 			cout << my_neighbors_ids[i] << " -> True. (" << neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second << " )" << endl;
+	// 		} else {
+	// 			cout << my_neighbors_ids[i] << " -> False. (" << neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second << " )" << endl;
+	// 		}
+	// 	}
 
-		if (backtracking)
-		{
-			cout << "Backtracking." << endl;
-		}
-	}
+	// 	if (backtracking)
+	// 	{
+	// 		cout << "Backtracking." << endl;
+	// 	}
+	// }
 
 	return allReceived;
 }
@@ -562,23 +562,27 @@ void SensorNode::msgAckServedReceived() {
 		//Resenting the counting of # of yet to be served neighbors of each of my neighbors
 		resetNeigEnumernodesBuffer();
 
-		if (nodeId == 45 && backtracking)
-		{
-			/*
-				ERROR:	I'm starting to backtrack here but I'm not setting on the 'neighbors_MSG_ENUMERNODES_buffer' buffer
+		/*
+			CONTEXT:	Starting to backtrack from Node 45 back to 8.
+
+			ERROR:		I'm starting to backtrack here but I'm not setting on the 'neighbors_MSG_ENUMERNODES_buffer' buffer
 						the sensor that has sent me the mule back.
 
-				FIX:
+			FIX:
 						if (backtracking)
 						{
 							neighbors_MSG_ENUMERNODES_buffer[u].first = true; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
 							neighbors_MSG_ENUMERNODES_buffer[u].second = 0; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
 						}
-						
-				u:		8 (validated with debugging msg)
 
-			*/
-			cout << "------------->" << endl;
+			u:			8 (validated with debugging msg)
+
+		*/
+
+		if (backtracking)
+		{
+			neighbors_MSG_ENUMERNODES_buffer[u].first = true; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
+			neighbors_MSG_ENUMERNODES_buffer[u].second = 0; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
 		}
 
 		//Requesting number of yet to be served neighbors of my neighbors
@@ -759,11 +763,15 @@ void SensorNode::msgEnumernodesReceived(void) {
 }
 
 void SensorNode::msgSendMuleReceived(void) {
-	//Then I'm backtracking
-	if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
-	{
-		backtracking = true;
-	}
+	// if (nodeId == 45)
+	// {
+	// 	cout << "Mule received here from u = " << u << endl;
+	// 	if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
+	// 	{
+	// 		cout << "backtracking = true;" << endl;
+	// 	}
+	// 	pauseExec();
+	// }
 
 	neighborsSentCounter = 0;
 	localMsgsSentCounter = 0;
@@ -774,6 +782,15 @@ void SensorNode::msgSendMuleReceived(void) {
 	//Mule has arrived at me for the 1st time - INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
 	if (!isMuleWithMe && !hasMuleBeenWithMe)
 	{
+		// if (nodeId == 45)
+		// {
+		// 	cout << "2 Mule received here from u = " << u << endl;
+		// 	if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
+		// 	{
+		// 		cout << "backtracking = true;" << endl;
+		// 	}
+		// 	pauseExec();
+		// }
 		//Mule has just arrived, can serve me and my N(u) - thus no pendent neighbors to be served left
 		unattendedNeigbors = 0;
 
@@ -790,6 +807,14 @@ void SensorNode::msgSendMuleReceived(void) {
 
 		//Reseting flag that marks the event of a N(u) having sent 'ACK_SERVED' back
 		resetNeigAckServedSentBackBuffer();
+
+		//Then I'm backtracking
+		if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
+		{
+			backtracking = true;
+			neighbors_MSG_ENUMERNODES_buffer[u].first = true;
+			neighbors_MSG_ENUMERNODES_buffer[u].second = 0;
+		}
 
 		//Notifying N(u) that u is being served by the mule
 		for (int i = 0; i < my_neighbors_ids.size(); i++)
@@ -808,6 +833,15 @@ void SensorNode::msgSendMuleReceived(void) {
 			}
 		}
 	} else if (hasMuleBeenWithMe) {
+		// if (nodeId == 45)
+		// {
+		// 	cout << "3 Mule received here from u = " << u << endl;
+		// 	if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
+		// 	{
+		// 		cout << "backtracking = true;" << endl;
+		// 	}
+		// 	pauseExec();
+		// }
 		//Mule has been sent here before and I have already be served - must check for neighbors that need the mule
 
 		//Mule is with me - again
@@ -816,10 +850,12 @@ void SensorNode::msgSendMuleReceived(void) {
 		//Resenting the counting of # of yet to be served neighbors of each of my neighbors - no need to wait for 'ACK_SERVED'
 		resetNeigEnumernodesBuffer();
 
-		if (backtracking)
+		//Then I'm backtracking
+		if (u != parentId) //INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
 		{
-			neighbors_MSG_ENUMERNODES_buffer[u].first = true; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
-			neighbors_MSG_ENUMERNODES_buffer[u].second = 0; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
+			backtracking = true;
+			neighbors_MSG_ENUMERNODES_buffer[u].first = true;
+			neighbors_MSG_ENUMERNODES_buffer[u].second = 0;
 		}
 
 		//Requesting number of yet to be served neighbors of my neighbors
