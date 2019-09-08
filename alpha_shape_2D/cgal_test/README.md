@@ -9,5 +9,5 @@
 **debugOption** - yes/no option for debugging messages (messages sent between nodes on the net)
 
 **debugLevel** - granularity of messages (integer) shown during execution
-                  [ 1 ] All messages are shown
-                  [ 2 ] Only mule movements are shown
+- 1 | All messages are shown
+- 2 | Only mule movements are shown
