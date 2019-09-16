@@ -73,7 +73,8 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 
 	//Saving neighbor selection method chosen
 	// selected = GREEDY;
-	selected = CONVEX_HULL;
+	// selected = CONVEX_HULL;
+	selected = ALPHA_SHAPE;
 
 	//Progran execution starting now
 	endExec = false;
@@ -197,26 +198,54 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	switch (selected)
 	{
 		case CONVEX_HULL:
-			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
-			// cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
-			// for (int i = 0; i < resultCGAL.size(); ++i)
-			// {
-			// 	cout << resultCGAL[i] << " - id " << coordinateToId(resultCGAL[i].x(), resultCGAL[i].y()) << endl;
-			// }
-			break;
+			{
+				//Calculating Convex-hull on {u} U N(u) and saving to 'resultCGAL'
+				CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
+
+				if (debug && debugLevel == 2) 
+				{
+					cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
+				}
+				break;
+			}
 		case ALPHA_SHAPE:
-			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
-			cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the alpha-shape" << endl;
-			break;
+			{
+				//Calculating Alpha-shape on {u} U N(u)
+				Alpha_shape_2 alphaShape(pointsCGAL.begin(), pointsCGAL.end(), FT(1000), Alpha_shape_2::GENERAL);
+
+				//Saving alpha-shapes boundary vertices to 'resultCGAL'
+				for (Alpha_shape_2::Alpha_shape_vertices_iterator it = alphaShape.Alpha_shape_vertices_begin(); it != alphaShape.Alpha_shape_vertices_end(); ++it)
+				{
+					Alpha_shape_2::Vertex_handle handle = *it;
+					Point_2 p = handle->point();
+
+					resultCGAL.push_back(p);
+				}
+
+				if (debug && debugLevel == 2)
+				{
+					// Returns an iterator pointing to the first element with α-value such that the alpha shape satisfies the following two properties:
+					// 	- All data points are either on the boundary or in the interior of the regularized version of the alpha shape.
+					// 	- The number of solid component of the alpha shape is equal to or smaller than nb_components.
+					// If no such value is found, the iterator points to the first element with α-value such that the alpha shape satisfies the second property.
+					cout << "My id: " << nodeId << " |  Optimal (local) alpha: " << *alphaShape.find_optimal_alpha(1) << endl;
+				}
+
+				break;
+			}
 		default:
 			//Convex-hull by default
 			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
-			cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull (default)" << endl;
+
+			if (debug && debugLevel == 2)
+			{
+				cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull (default)" << endl;
+			}
 			break;
 	}
 
 	//Start sensor
-	initializeSensorNode();
+	// initializeSensorNode();
 }
 
 //Destructor.
@@ -573,7 +602,7 @@ void SensorNode::muleOn1stSensorStart(void) {
 	unattendedNeigbors = 0; /* REVISION - Pablo set's it to '0' here but I believe it should
 	be the actual number of neighbors for there are msgs to be exchanged in order to serve them.
 	Correction: maybe this is due to the fact that 'no one will ask this node's number of unattended
-	nodes' (this is set to '0' already) - but still there might be msgs to be accounted for here still - validate with prof. U�verton */
+	nodes' (this is set to '0' already) - but still there might be msgs to be accounted for here still - validate with prof. Uéverton */
 
 	//Reseting flag that marks the event of a N(u) having sent 'ACK_SERVED' back
 	resetNeigAckServedSentBackBuffer();
