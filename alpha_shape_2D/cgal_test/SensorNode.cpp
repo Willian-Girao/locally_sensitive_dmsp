@@ -428,6 +428,26 @@ bool SensorNode::checkAllMsgEnumernodesReceived(void) {
 				}
 			}
 			break;
+		case ALPHA_SHAPE:
+			for (int i = 0; i < resultCGAL.size(); i++)
+			{
+				int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+				if (backtracking)
+				{
+					if (idAux != nodeId && neighbors_MSG_ENUMERNODES_buffer[idAux].first == false)
+					{
+						allReceived = false;
+					}
+				}
+				else {
+					if (idAux != nodeId && idAux != parentId && neighbors_MSG_ENUMERNODES_buffer[idAux].first == false)
+					{
+						allReceived = false;
+					}
+				}
+			}
+			break;
 		default:
 			//Greedy by default
 			for (int i = 0; i < my_neighbors_ids.size(); i++)
@@ -799,6 +819,27 @@ void SensorNode::msgAckServedReceived() {
 					}
 				}
 				break;
+			case ALPHA_SHAPE:
+				for (int i = 0; i < resultCGAL.size(); i++)
+				{
+					//Getting id from node coordinates
+					int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+					//No need to send to my parent - nor to myself ({u} U N(u))
+					if (idAux != parentId && idAux != nodeId)
+					{
+						//Debuging msg
+						debugMesseging(idAux, "MSG_REQUEST", -1);
+
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						infoSent = 1;
+						MPI_Send(&infoSent, 1, MPI_INT, idAux, MSG_REQUEST, MPI_COMM_WORLD);
+
+						//Updating metrics variables
+						will += 2; //Increase local count by x2 (account for N(u) reply)
+					}
+				}
+				break;
 			default:
 				//Greedy by default
 				for (int i = 0; i < my_neighbors_ids.size(); i++)
@@ -1050,6 +1091,24 @@ void SensorNode::msgSendMuleReceived(void) {
 				}
 				break;
 			case CONVEX_HULL:
+				for (int i = 0; i < resultCGAL.size(); i++)
+				{
+					int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+					if (idAux != u && idAux != nodeId) //INCORPORATED TO APPLY IMPROVE_000
+					{
+						//Debuging msg
+						debugMesseging(idAux, "MSG_REQUEST", -1);
+
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						MPI_Send(&infoSent, 1, MPI_INT, idAux, MSG_REQUEST, MPI_COMM_WORLD);
+
+						//Updating metrics variables
+						will += 2;
+					}
+				}
+				break;
+			case ALPHA_SHAPE:
 				for (int i = 0; i < resultCGAL.size(); i++)
 				{
 					int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
