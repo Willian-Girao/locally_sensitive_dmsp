@@ -131,8 +131,10 @@ private:
 	bool workToBeDoneStill(void); //Checks if there is any neighbor with its own neighbors waiting to be served
 	bool allUpdateMsgCountReivedBack(void);
 
+	int coordinateToId(double x, double y);
 	int methodOfChoice(void);
 	int makeGreedySelection(void);
+	int makeConvexHullSelection(void);
 	/* Method for the Convex-Hull */
 	/* Method for the Alpha-Shape */
 

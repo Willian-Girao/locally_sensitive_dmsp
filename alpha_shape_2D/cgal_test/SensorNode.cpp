@@ -72,7 +72,8 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	mpiTimeDebuging = MPI_Wtime();
 
 	//Saving neighbor selection method chosen
-	selected = GREEDY;
+	// selected = GREEDY;
+	selected = CONVEX_HULL;
 
 	//Progran execution starting now
 	endExec = false;
@@ -192,11 +193,30 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	//Initially all neighbors are unattended
 	unattendedNeigbors = stoi(split_vector[0]);
 
-	//Start sensor
-	// initializeSensorNode();
+	//Calculating required shape - Alpha or Hull
+	switch (selected)
+	{
+		case CONVEX_HULL:
+			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
+			// cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
+			// for (int i = 0; i < resultCGAL.size(); ++i)
+			// {
+			// 	cout << resultCGAL[i] << " - id " << coordinateToId(resultCGAL[i].x(), resultCGAL[i].y()) << endl;
+			// }
+			break;
+		case ALPHA_SHAPE:
+			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
+			cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the alpha-shape" << endl;
+			break;
+		default:
+			//Convex-hull by default
+			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
+			cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull (default)" << endl;
+			break;
+	}
 
-	CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
-	cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
+	//Start sensor
+	initializeSensorNode();
 }
 
 //Destructor.
@@ -338,22 +358,66 @@ bool SensorNode::checkAllNeighborFlagAckBeingServedReceived(void) {
 bool SensorNode::checkAllMsgEnumernodesReceived(void) {
 	bool allReceived = true;
 
-	for (int i = 0; i < my_neighbors_ids.size(); i++)
+	//Neighbor selection method has to influence here - who I'm waiting to reply my request
+	switch (selected) 
 	{
-		// if ((neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false || neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].second == -1) && my_neighbors_ids[i] != parentId)
-		if (backtracking)
-		{
-			if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
+		case GREEDY:
+			for (int i = 0; i < my_neighbors_ids.size(); i++)
 			{
-				allReceived = false;
+				if (backtracking)
+				{
+					if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
+					{
+						allReceived = false;
+					}
+				}
+				else {
+					if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
+					{
+						allReceived = false;
+					}
+				}
 			}
-		}
-		else {
-			if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
+			break;
+		case CONVEX_HULL:
+			for (int i = 0; i < resultCGAL.size(); i++)
 			{
-				allReceived = false;
+				int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+				if (backtracking)
+				{
+					if (idAux != nodeId && neighbors_MSG_ENUMERNODES_buffer[idAux].first == false)
+					{
+						allReceived = false;
+					}
+				}
+				else {
+					if (idAux != nodeId && idAux != parentId && neighbors_MSG_ENUMERNODES_buffer[idAux].first == false)
+					{
+						allReceived = false;
+					}
+				}
 			}
-		}
+			break;
+		default:
+			//Greedy by default
+			for (int i = 0; i < my_neighbors_ids.size(); i++)
+			{
+				if (backtracking)
+				{
+					if (neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
+					{
+						allReceived = false;
+					}
+				}
+				else {
+					if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
+					{
+						allReceived = false;
+					}
+				}
+			}
+			break;
 	}
 
 	return allReceived;
@@ -416,6 +480,61 @@ int SensorNode::makeGreedySelection(void) {
 	return sensorId;
 }
 
+int SensorNode::makeConvexHullSelection(void) {
+	//Result will be the neighbor with the largest # of neighbor sensors not served yet
+	int sensorId = -1;
+	int biggestDemmand = -1;
+
+	for (int i = 0; i < resultCGAL.size(); i++)
+	{
+		int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+		if (neighbors_MSG_ENUMERNODES_buffer[idAux].first != false && neighbors_MSG_ENUMERNODES_buffer[idAux].second > 0)
+		{
+			if (idAux != nodeId && idAux != parentId && neighbors_MSG_ENUMERNODES_buffer[idAux].second > biggestDemmand) {
+				//Updating optimal choice
+				biggestDemmand = neighbors_MSG_ENUMERNODES_buffer[idAux].second;
+				sensorId = idAux;
+			}
+		}
+	}
+
+	//Error checking
+	if (sensorId == -1)
+	{
+		errorHasOccoured("Next sensor to send the mule has not been chosen");
+	}
+
+	return sensorId;
+}
+
+int SensorNode::coordinateToId(double x, double y) {
+	int id = -1;
+
+	//Checking within N(u)
+	for (int i = 0; i < my_neighbors_ids.size(); ++i)
+	{
+		if (my_neighbors_xy[my_neighbors_ids[i]].first == x && my_neighbors_xy[my_neighbors_ids[i]].second == y)
+		{
+			id = my_neighbors_ids[i];
+		}
+	}
+
+	//Checking if u
+	if (my_coordinates[nodeId].first == x && my_coordinates[nodeId].second == y)
+	{
+		id = nodeId;
+	}
+
+	//Error check
+	if (id == -1)
+	{
+		errorHasOccoured("Attempt to find id from coordinates failed");
+	}
+
+	return id;
+}
+
 int SensorNode::methodOfChoice(void) {
 	//Selected node (sensor) to send the mule next
 	int selectedNeighbor = -1;
@@ -423,13 +542,15 @@ int SensorNode::methodOfChoice(void) {
 	//Checking wich selection method was elected
 	switch (selected)
 	{
-	case GREEDY:
-		//Choosing the neighbor with the biggest # of yet to be served neighbors
-		return makeGreedySelection();
-		break;
-	default:
-		errorHasOccoured("No neighbor selection method chosen");
-		break;
+		case GREEDY:
+			return makeGreedySelection();
+			break;
+		case CONVEX_HULL:
+			return makeConvexHullSelection();
+			break;
+		default:
+			errorHasOccoured("No neighbor selection method chosen");
+			break;
 	}
 
 	//Error checking
@@ -537,26 +658,12 @@ void SensorNode::msgServedReceived() {
 		debugMesseging(u, "ACK_SERVED", -1);
 		infoSent = 0;
 
-		// if ((infoSent % 2) > 0)
-		// {
-		// 	cout << "Node sending odd count: " << nodeId << endl;
-		// 	cout << "To: " << u << endl;
-		// 	cout << "Count: " << infoSent << endl;
-		// 	pauseExec();
-		// }
-
 		//Let my N(v) know I'm being served (my parent node is with the mule at this moment talking to me)
 		MPI_Send(&infoSent, 1, MPI_INT, u, ACK_SERVED, MPI_COMM_WORLD);
 	}
 }
 
 void SensorNode::msgAckServedReceived() {
-	// if (nodeId == 198)
-	// {
-	// 	cout << "Will " << will << endl;
-	// 	cout << "infoRec " << infoRec << endl;
-	// }
-
 	//TODO - error check here for odd infoRec
 
 	will += infoRec; //Update local count of msg sent
@@ -567,31 +674,20 @@ void SensorNode::msgAckServedReceived() {
 	//All my N(u) are updated and have sent 'ACK_SERVED' back
 	if (checkAllNeighborFlagAckServedReceived()) //REVIEW - maybe Pablo is not checking for the parentId here
 	{
-		// if (nodeId == 198)
-		// {
-		// 	cout << "Will " << will << endl;
-		// 	cout << "infoRec " << infoRec << endl;
-		// 	pauseExec();
-		// }
-
 		//Resenting the counting of # of yet to be served neighbors of each of my neighbors
 		resetNeigEnumernodesBuffer();
 
 		/*
 			CONTEXT:	Starting to backtrack from Node 45 back to 8.
-
 			ERROR:		I'm starting to backtrack here but I'm not setting on the 'neighbors_MSG_ENUMERNODES_buffer' buffer
 						the sensor that has sent me the mule back.
-
 			FIX:
 						if (backtracking)
 						{
 							neighbors_MSG_ENUMERNODES_buffer[u].first = true; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
 							neighbors_MSG_ENUMERNODES_buffer[u].second = 0; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
 						}
-
 			u:			8 (validated with debugging msg)
-
 		*/
 
 		if (backtracking)
@@ -600,22 +696,68 @@ void SensorNode::msgAckServedReceived() {
 			neighbors_MSG_ENUMERNODES_buffer[u].second = 0; //INCORPORATED TO APPLY IMPROVE_000 (SO I WONT BE ETERNALY WAITING WHEN BACKTRACKING)
 		}
 
-		//Requesting number of yet to be served neighbors of my neighbors
-		for (int i = 0; i < my_neighbors_ids.size(); i++)
+		//Requesting number of yet to be served neighbors of my neighbors - neighbor select method has to influence here - who I'm gonna 
+		//send the request to | GREEDY: request to all | CONVEX_HULL: request only to CH[{u} U N(u) | ALPHA_SHAPE: request only to AS[{u} U N(u)]
+		switch (selected) 
 		{
-			//No need to send to my parent
-			if (my_neighbors_ids[i] != parentId)
-			{
-				//Debuging msg
-				debugMesseging(my_neighbors_ids[i], "MSG_REQUEST", -1);
+			case GREEDY:
+				for (int i = 0; i < my_neighbors_ids.size(); i++)
+				{
+					//No need to send to my parent
+					if (my_neighbors_ids[i] != parentId)
+					{
+						//Debuging msg
+						debugMesseging(my_neighbors_ids[i], "MSG_REQUEST", -1);
 
-				//Let who sent the message now I'm acknowledging that the mule is serving it
-				infoSent = 1;
-				MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						infoSent = 1;
+						MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
 
-				//Updating metrics variables
-				will += 2; //Increase local count by x2 (account for N(u) reply)
-			}
+						//Updating metrics variables
+						will += 2; //Increase local count by x2 (account for N(u) reply)
+					}
+				}
+				break;
+			case CONVEX_HULL:
+				for (int i = 0; i < resultCGAL.size(); i++)
+				{
+					//Getting id from node coordinates
+					int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+					//No need to send to my parent - nor to myself ({u} U N(u))
+					if (idAux != parentId && idAux != nodeId)
+					{
+						//Debuging msg
+						debugMesseging(idAux, "MSG_REQUEST", -1);
+
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						infoSent = 1;
+						MPI_Send(&infoSent, 1, MPI_INT, idAux, MSG_REQUEST, MPI_COMM_WORLD);
+
+						//Updating metrics variables
+						will += 2; //Increase local count by x2 (account for N(u) reply)
+					}
+				}
+				break;
+			default:
+				//Greedy by default
+				for (int i = 0; i < my_neighbors_ids.size(); i++)
+				{
+					//No need to send to my parent
+					if (my_neighbors_ids[i] != parentId)
+					{
+						//Debuging msg
+						debugMesseging(my_neighbors_ids[i], "MSG_REQUEST", -1);
+
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						infoSent = 1;
+						MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
+
+						//Updating metrics variables
+						will += 2; //Increase local count by x2 (account for N(u) reply)
+					}
+				}
+				break;
 		}
 	}
 
@@ -828,20 +970,60 @@ void SensorNode::msgSendMuleReceived(void) {
 			neighbors_MSG_ENUMERNODES_buffer[u].second = 0;
 		}
 
-		//Requesting number of yet to be served neighbors of my neighbors
-		for (int i = 0; i < my_neighbors_ids.size(); i++)
+		switch (selected)
 		{
-			if (my_neighbors_ids[i] != u) //INCORPORATED TO APPLY IMPROVE_000
-			{
-				//Debuging msg
-				debugMesseging(my_neighbors_ids[i], "MSG_REQUEST", -1);
+			case GREEDY:
+				//Requesting number of yet to be served neighbors of my neighbors
+				for (int i = 0; i < my_neighbors_ids.size(); i++)
+				{
+					if (my_neighbors_ids[i] != u) //INCORPORATED TO APPLY IMPROVE_000
+					{
+						//Debuging msg
+						debugMesseging(my_neighbors_ids[i], "MSG_REQUEST", -1);
 
-				//Let who sent the message now I'm acknowledging that the mule is serving it
-				MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
 
-				//Updating metrics variables
-				will += 2;
-			}
+						//Updating metrics variables
+						will += 2;
+					}
+				}
+				break;
+			case CONVEX_HULL:
+				for (int i = 0; i < resultCGAL.size(); i++)
+				{
+					int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+					if (idAux != u && idAux != nodeId) //INCORPORATED TO APPLY IMPROVE_000
+					{
+						//Debuging msg
+						debugMesseging(idAux, "MSG_REQUEST", -1);
+
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						MPI_Send(&infoSent, 1, MPI_INT, idAux, MSG_REQUEST, MPI_COMM_WORLD);
+
+						//Updating metrics variables
+						will += 2;
+					}
+				}
+				break;
+			default:
+				//Greedy by default
+				for (int i = 0; i < my_neighbors_ids.size(); i++)
+				{
+					if (my_neighbors_ids[i] != u) //INCORPORATED TO APPLY IMPROVE_000
+					{
+						//Debuging msg
+						debugMesseging(my_neighbors_ids[i], "MSG_REQUEST", -1);
+
+						//Let who sent the message now I'm acknowledging that the mule is serving it
+						MPI_Send(&infoSent, 1, MPI_INT, my_neighbors_ids[i], MSG_REQUEST, MPI_COMM_WORLD);
+
+						//Updating metrics variables
+						will += 2;
+					}
+				}
+				break;
 		}
 	}
 	else {
