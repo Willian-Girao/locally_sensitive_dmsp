@@ -202,7 +202,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 				//Calculating Convex-hull on {u} U N(u) and saving to 'resultCGAL'
 				CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
 
-				if (debug && debugLevel == 2) 
+				if (debug && debugLevel == 3) 
 				{
 					cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
 				}
@@ -222,7 +222,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 					resultCGAL.push_back(p);
 				}
 
-				if (debug && debugLevel == 2)
+				if (debug && debugLevel == 3)
 				{
 					// Returns an iterator pointing to the first element with α-value such that the alpha shape satisfies the following two properties:
 					// 	- All data points are either on the boundary or in the interior of the regularized version of the alpha shape.
@@ -237,7 +237,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 			//Convex-hull by default
 			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
 
-			if (debug && debugLevel == 2)
+			if (debug && debugLevel == 3)
 			{
 				cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull (default)" << endl;
 			}
@@ -537,6 +537,34 @@ int SensorNode::makeConvexHullSelection(void) {
 	return sensorId;
 }
 
+int SensorNode::makeAlphaShapeSelection(void) {
+	//Result will be the neighbor with the largest # of neighbor sensors not served yet
+	int sensorId = -1;
+	int biggestDemmand = -1;
+
+	for (int i = 0; i < resultCGAL.size(); i++)
+	{
+		int idAux = coordinateToId(resultCGAL[i].x(), resultCGAL[i].y());
+
+		if (neighbors_MSG_ENUMERNODES_buffer[idAux].first != false && neighbors_MSG_ENUMERNODES_buffer[idAux].second > 0)
+		{
+			if (idAux != nodeId && idAux != parentId && neighbors_MSG_ENUMERNODES_buffer[idAux].second > biggestDemmand) {
+				//Updating optimal choice
+				biggestDemmand = neighbors_MSG_ENUMERNODES_buffer[idAux].second;
+				sensorId = idAux;
+			}
+		}
+	}
+
+	//Error checking
+	if (sensorId == -1)
+	{
+		errorHasOccoured("Next sensor to send the mule has not been chosen");
+	}
+
+	return sensorId;
+}
+
 int SensorNode::coordinateToId(double x, double y) {
 	int id = -1;
 
@@ -576,6 +604,9 @@ int SensorNode::methodOfChoice(void) {
 			break;
 		case CONVEX_HULL:
 			return makeConvexHullSelection();
+			break;
+		case ALPHA_SHAPE:
+			return makeAlphaShapeSelection();
 			break;
 		default:
 			errorHasOccoured("No neighbor selection method chosen");

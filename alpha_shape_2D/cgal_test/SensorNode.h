@@ -142,6 +142,7 @@ private:
 	int methodOfChoice(void);
 	int makeGreedySelection(void);
 	int makeConvexHullSelection(void);
+	int makeAlphaShapeSelection(void);
 	/* Method for the Convex-Hull */
 	/* Method for the Alpha-Shape */
 
