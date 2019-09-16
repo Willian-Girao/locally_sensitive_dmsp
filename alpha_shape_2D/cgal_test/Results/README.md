@@ -38,17 +38,17 @@ pcb442          	 12     		   164752
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
-kroD100  			 6        		   11128
+kroD100  			 6        		   10546
 
-rat195 		   	 4       		    42994
+rat195 		   	  4       		     42120
 
-team2_201    	 12      		     30730
+team2_201    	 12      		     29052
 
-team3_301    	 76      		     21470
+team3_301    	 76      		    19402
 
-lin318            	 x      		     x
+lin318            	   8      		     92340
 
-rd400             	 x     		      x
+rd400             	 14     		     108816
 
-pcb442          	 x     		      x
+pcb442          	 12     		     165196
 
