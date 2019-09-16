@@ -12,7 +12,23 @@
 #include <sstream>
 #include <mpi.h>
 
+// CGAL - Graphic library headers.
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/convex_hull_2.h>
+#include <CGAL/Alpha_shape_2.h>
+#include <CGAL/Alpha_shape_vertex_base_2.h>
+#include <CGAL/Alpha_shape_face_base_2.h>
+#include <CGAL/Delaunay_triangulation_2.h>
+#include <CGAL/algorithm.h>
+#include <CGAL/assertions.h>
+
 using namespace std;
+
+/* CGAL lib required */
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+typedef K::Point_2 Point_2;
+typedef std::vector<Point_2> Points;
+
 
 class SensorNode {
 public:
@@ -62,7 +78,7 @@ private:
 	vector<int> my_neighbors_ids;
 
 	//TODO - Change this for a map of 'int' and 'pair'.
-	//TODO - 'pair' has to become a Point for the CGLA lib.
+	//TODO - 'pair' has to become a Point_2 for the CGLA lib.
 	map<int, pair<double, double>> my_neighbors_xy;
 
 	//MPI associated properties.
@@ -91,6 +107,10 @@ private:
 		ALPHA_SHAPE
 	};
 
+	//CGAL related
+	Points pointsCGAL;
+	Points resultCGAL;
+
 	//Elected selection method
 	selection_method selected;
 
@@ -113,6 +133,8 @@ private:
 
 	int methodOfChoice(void);
 	int makeGreedySelection(void);
+	/* Method for the Convex-Hull */
+	/* Method for the Alpha-Shape */
 
 	//Upon Receiving exchanged messages
 	void msgServedReceived(void); /* Mule is with my parent and I need to update my neighbors | Received: 'MSG_SERVED'; Sent ahead: 'MSG_BEING_SERVED') */

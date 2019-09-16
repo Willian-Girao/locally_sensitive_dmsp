@@ -13,15 +13,6 @@
 #include <array>
 #include <ctime>
 
-// CGAL - Graphic library headers.
-//#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-//#include <CGAL/Alpha_shape_2.h>
-//#include <CGAL/Alpha_shape_vertex_base_2.h>
-//#include <CGAL/Alpha_shape_face_base_2.h>
-//#include <CGAL/Delaunay_triangulation_2.h>
-//#include <CGAL/algorithm.h>
-//#include <CGAL/assertions.h>
-
 // MPI - Message Passing Interface for parallel programming.
 #include "mpi.h"
 
@@ -36,8 +27,12 @@ int myId, numOfProcs;
 int main(int argc, char* argv[])
 {
 	/* Debug variables */
-	string s = argv[2];
-	string z = argv[3];
+	//string s = argv[4];
+	//string z = argv[5];
+
+	string s = "yes";
+	string z = "2";
+
 	bool shouldDebug = (s == "yes" ? true : false);
 	int shouldDebugLevel = stoi(z);
 
@@ -47,9 +42,7 @@ int main(int argc, char* argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &myId);
 
 	/* Consuming instance file and initializing network nodes */
-	string instanceFileName = "./";
-	instanceFileName.append(argv[1]);
-	instanceFileName.append(".dat");
+	string instanceFileName = "./test/graph_0.dat";
 
 	/* Constructor of the class consumes the instance and initializes the sensor accordingly */
 	SensorNode u(instanceFileName, myId, shouldDebug, shouldDebugLevel);

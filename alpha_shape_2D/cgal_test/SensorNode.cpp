@@ -142,6 +142,8 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	double dx = stod(split_vector_nodeLine[0]);
 	double dy = stod(split_vector_nodeLine[1]);
 
+	pointsCGAL.push_back(Point_2(dx, dy));
+
 	pair<double, double> my_xy(dx, dy);
 
 	my_coordinates[sensorId] = my_xy;
@@ -183,13 +185,18 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 		pair<double, double> neighbor_coord(cx, cy);
 
 		my_neighbors_xy[stoi(split_vector[i])] = neighbor_coord;
+
+		pointsCGAL.push_back(Point_2(cx, cy));
 	}
 
 	//Initially all neighbors are unattended
 	unattendedNeigbors = stoi(split_vector[0]);
 
 	//Start sensor
-	initializeSensorNode();
+	// initializeSensorNode();
+
+	CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
+	cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
 }
 
 //Destructor.
@@ -231,29 +238,29 @@ void SensorNode::debugMesseging(int receiver, string msg, int payload) {
 
 		switch (debugLevel)
 		{
-			case 1:
-				if (payload >= 0)
-				{
-					cout << "\n" << nodeId << " " << msg << " " << receiver << " [" << payload << "]	- " << (tf - mpiTimeDebuging) << "ms";
-					cout << endl;
-				}
-				else if (msg == "SEND_MULE") {
-					cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
-				}
-				else {
-					cout << "\n" << nodeId << " " << msg << " " << receiver << "	- " << (tf - mpiTimeDebuging) << "ms" << endl;
-				}
+		case 1:
+			if (payload >= 0)
+			{
+				cout << "\n" << nodeId << " " << msg << " " << receiver << " [" << payload << "]	- " << (tf - mpiTimeDebuging) << "ms";
+				cout << endl;
+			}
+			else if (msg == "SEND_MULE") {
+				cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
+			}
+			else {
+				cout << "\n" << nodeId << " " << msg << " " << receiver << "	- " << (tf - mpiTimeDebuging) << "ms" << endl;
+			}
 
-				break;
-			case 2:
-				if (msg == "SEND_MULE")
-				{
-					cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
-				}
+			break;
+		case 2:
+			if (msg == "SEND_MULE")
+			{
+				cout << "\n" << nodeId << " ->[ SENDING MULE ]-> " << receiver << endl;
+			}
 
-				break;
-			default:
-				break;
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -340,7 +347,8 @@ bool SensorNode::checkAllMsgEnumernodesReceived(void) {
 			{
 				allReceived = false;
 			}
-		} else {
+		}
+		else {
 			if (my_neighbors_ids[i] != parentId && neighbors_MSG_ENUMERNODES_buffer[my_neighbors_ids[i]].first == false)
 			{
 				allReceived = false;
@@ -802,7 +810,8 @@ void SensorNode::msgSendMuleReceived(void) {
 				will += 2;
 			}
 		}
-	} else if (hasMuleBeenWithMe) {
+	}
+	else if (hasMuleBeenWithMe) {
 		//Mule has been sent here before and I have already be served - must check for neighbors that need the mule
 
 		//Mule is with me - again
@@ -834,7 +843,8 @@ void SensorNode::msgSendMuleReceived(void) {
 				will += 2;
 			}
 		}
-	} else {
+	}
+	else {
 		errorHasOccoured("No action taken upon mule arrival (SEND_MULE msg received)");
 	}
 
