@@ -194,7 +194,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	//Initially all neighbors are unattended
 	unattendedNeigbors = stoi(split_vector[0]);
 
-	//Calculating required shape - Alpha or Hull
+	//Calculating required shape - Convex-Hull | Alpha-Shape
 	switch (selected)
 	{
 		case CONVEX_HULL:
@@ -245,7 +245,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	}
 
 	//Start sensor
-	// initializeSensorNode();
+	initializeSensorNode();
 }
 
 //Destructor.
