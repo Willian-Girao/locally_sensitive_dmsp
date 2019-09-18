@@ -118,6 +118,8 @@ private:
 	Points pointsCGAL;
 	Points resultCGAL;
 
+	double alphaValue;
+
 	//Elected selection method
 	selection_method selected;
 

@@ -73,8 +73,17 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 
 	//Saving neighbor selection method chosen
 	// selected = GREEDY;
-	// selected = CONVEX_HULL;
-	selected = ALPHA_SHAPE;
+	selected = CONVEX_HULL;
+	//selected = ALPHA_SHAPE;
+
+	//alphaValue = 7.798; //rat195 radius
+	//alphaValue = 20; //team2_201 radius
+	//alphaValue = 7; //team3_301 radius
+	//alphaValue = 82.68; //lin318 radius
+	//alphaValue = 19.910618; //rd400 radius
+	//alphaValue = 7.6; //pcb442 radius
+	alphaValue = 27; //team6_501 radius
+	//alphaValue = 24.29218; //dsj1000 radius
 
 	//Progran execution starting now
 	endExec = false;
@@ -213,6 +222,9 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 				//Calculating Alpha-shape on {u} U N(u)
 				Alpha_shape_2 alphaShape(pointsCGAL.begin(), pointsCGAL.end(), FT(1000), Alpha_shape_2::GENERAL);
 
+				//Alpha-shapes' alpha is set as the node transmission range
+				alphaShape.set_alpha(alphaValue);
+
 				//Saving alpha-shapes boundary vertices to 'resultCGAL'
 				for (Alpha_shape_2::Alpha_shape_vertices_iterator it = alphaShape.Alpha_shape_vertices_begin(); it != alphaShape.Alpha_shape_vertices_end(); ++it)
 				{
@@ -228,7 +240,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 					// 	- All data points are either on the boundary or in the interior of the regularized version of the alpha shape.
 					// 	- The number of solid component of the alpha shape is equal to or smaller than nb_components.
 					// If no such value is found, the iterator points to the first element with α-value such that the alpha shape satisfies the second property.
-					cout << "My id: " << nodeId << " |  Optimal (local) alpha: " << *alphaShape.find_optimal_alpha(1) << endl;
+					cout << "My id: " << nodeId << " |  Alpha: " << alphaValue << endl;
 				}
 
 				break;
@@ -259,6 +271,27 @@ SensorNode::~SensorNode() {
 		cout << "Messages sent:  " << totalMsgsSent << endl;
 		cout << "Nodes count:    " << totalNodes << endl;
 		cout << "Instance:       " << instanceName << endl;
+		switch (selected)
+		{
+			case GREEDY:
+			{
+				cout << "Method:         GREEDY" << instanceName << endl;
+				break;
+			}
+			case CONVEX_HULL:
+			{
+				cout << "Method:         CONVEX-HULL" << instanceName << endl;
+				break;
+			}
+			case ALPHA_SHAPE:
+			{
+				cout << "Method:         ALPHA-SHAPE" << instanceName << endl;
+				break;
+			}
+			default:
+			
+				break;
+		}
 		cout << "________________________________________________\n\n";
 	}
 }

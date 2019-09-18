@@ -34,7 +34,9 @@ rd400             	14     		    108372
 
 pcb442          	 12     		   164752
 
-# Alpha-Shape
+team6_501          6     		    307380
+
+# Alpha-Shape (optimal-alpha)
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
@@ -51,4 +53,24 @@ lin318            	   8      		     92340
 rd400             	 14     		     108816
 
 pcb442          	 12     		     165196
+
+# Alpha-Shape (alpha-radius)
+
+**Instance Name**  **Mule Steps**  **Messages Sent**
+
+kroD100  			 6        		   10940
+
+rat195 		   	  4       		     42226
+
+team2_201    	 **10**      		     30438
+
+team3_301    	 76      		    20614
+
+lin318            	   8      		     94106
+
+rd400             	 16     		     111930
+
+pcb442          	 14     		     166630
+
+team6_501          6     		      308644
 
