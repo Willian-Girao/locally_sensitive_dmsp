@@ -275,17 +275,17 @@ SensorNode::~SensorNode() {
 		{
 			case GREEDY:
 			{
-				cout << "Method:         GREEDY" << instanceName << endl;
+				cout << "Method:         GREEDY" << endl;
 				break;
 			}
 			case CONVEX_HULL:
 			{
-				cout << "Method:         CONVEX-HULL" << instanceName << endl;
+				cout << "Method:         CONVEX-HULL" << endl;
 				break;
 			}
 			case ALPHA_SHAPE:
 			{
-				cout << "Method:         ALPHA-SHAPE" << instanceName << endl;
+				cout << "Method:         ALPHA-SHAPE" << endl;
 				break;
 			}
 			default:
