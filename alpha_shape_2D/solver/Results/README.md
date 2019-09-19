@@ -51,7 +51,7 @@ dsj1000			  X     		    X
 
 bonus1000  	  X     		    X
 
-## Alpha-Shape
+## <span>&#x3B1;</span>-Shape
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
