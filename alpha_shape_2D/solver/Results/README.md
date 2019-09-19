@@ -1,5 +1,7 @@
 # Experimental Methods Results
-Best results amongst the methods are shown in bold (both path length and # of messages exchanged).
+Best results amongst the methods are shown in bold (both path length and # of messages exchanged). The shapes (hull and alpha) are calculated, at each node the mule passes through, using {u} U N(u) (called here **N***): N* <span>&#x2287;</span> **alpha-shape**  <span>&#x2287;</span> **convex-hull**. Thus, it is expected that the method based on the **convex-hull** of **N*** will have **solutions either as good as or worse than the method based on the greedy approach** (and will send less messages), while the method based on the  **<span>&#x3B1;</span>-shape** of **N*** will have **solutions either equal or better than the ones found by the convex-hull, but at most as good as the greedy approach** (with less messages than the greedy one, and a fewer more than the convex-hull one). 
+
+The experimental results listed bellow verifies this expected behavior. The **<span>&#x3B1;</span>** utilized to calculate the <span>&#x3B1;</span>-shape of N* equals the **diameter** of the node's communication range (same for all nodes within the same graph).
 
 ## Greedy Results
 
@@ -29,27 +31,55 @@ bonus1000  		X     		    X
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
-kroD100  			 6       		   **10518**
+kroD100  			 6       		   10518
 
-rat195 		   	 4       		   **42064**
+rat195 		   	  4       		    42064
 
-team2_201    	12      		   **29002**
+team2_201    	 12      		   29002
 
-team3_301    	76      		   **19240**
+team3_301    	 76      		   19240
 
-lin318            	  8      		    **91670**
+lin318            	   8      		    91670
 
-rd400             	**14**     		    **108372**
+rd400             	 14     		   108372
 
-pcb442          	 **12**     		   **164752**
+pcb442          	 12     		   164752
 
-team6_501          6     		    **307380**
+team6_501         6     		    307380
+
+dsj1000			  X     		    X
+
+bonus1000  	  X     		    X
+
+## Alpha-Shape
+
+**Instance Name**  **Mule Steps**  **Messages Sent**
+
+kroD100  			 6        		   10634
+
+rat195 		   	  4       		     42206
+
+team2_201    	 10      		     30052
+
+team3_301    	 76      		    19552
+
+lin318            	   8      		     93706
+
+rd400             	 14     		     109382
+
+pcb442          	 12     		     165554
+
+team6_501          6     		      308322
 
 dsj1000				X     		    X
 
 bonus1000  		X     		    X
 
-## Alpha-Shape (alpha-radius)
+# Variations Results
+
+Results of experiments to validate possible neighbor selection based variations related to where the points are being selected from (depending on the shape). Best results amongst the methods are shown in bold (both path length and # of messages exchanged).
+
+## Alpha-Shape (alpha - radius)
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
@@ -73,11 +103,7 @@ dsj1000				X     		    X
 
 bonus1000  		X     		    X
 
-# Variations Results
-
-Results of experiments to validate possible neighbor selection based variations related to where the points are being selected from (depending on the shape). Best results amongst the methods are shown in bold (both path length and # of messages exchanged).
-
-## Alpha-Shape (optimal-alpha)
+## Alpha-Shape (alpha - auto optimal)
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
