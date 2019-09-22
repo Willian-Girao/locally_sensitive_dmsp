@@ -3,7 +3,7 @@ Best results amongst the methods are shown in bold (both path length and # of me
 
 The experimental results listed bellow verifies this expected behavior. The **<span>&#x3B1;</span>** utilized to calculate the <span>&#x3B1;</span>-shape of N* equals the **diameter** of the node's communication range (same for all nodes within the same graph).
 
-## Greedy Results
+## Greedy
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
@@ -21,7 +21,7 @@ rd400             	14     		    112638
 
 pcb442          	12     		    169902
 
-team6_501          X     		    X
+team6_501          6     		    312228
 
 dsj1000				X     		    X
 
