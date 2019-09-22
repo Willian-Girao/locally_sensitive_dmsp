@@ -79,7 +79,7 @@ bonus1000  		X     		    X
 
 Results of experiments to validate possible neighbor selection based variations related to where the points are being selected from (depending on the shape). Best results amongst the methods are shown in bold (both path length and # of messages exchanged).
 
-## Alpha-Shape (alpha - radius)
+## <span>&#x3B1;</span>-Shape (<span>&#x3B1;</span> - radius)
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
@@ -103,7 +103,7 @@ dsj1000				X     		    X
 
 bonus1000  		X     		    X
 
-## Alpha-Shape (alpha - auto optimal)
+## <span>&#x3B1;</span>-Shape (<span>&#x3B1;</span> - auto optimal)
 
 **Instance Name**  **Mule Steps**  **Messages Sent**
 
