@@ -42,10 +42,13 @@ int main(int argc, char* argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &myId);
 
 	/* Consuming instance file and initializing network nodes */
-	string instanceFileName = "./instances/kroD100.dat";
+	//string instanceFileName = "./instances/kroD100.dat";
+	string instanceFileName = "./instances/dsj1000.dat";
+
+	cout << "Process: " << myId << endl;
 
 	/* Constructor of the class consumes the instance and initializes the sensor accordingly */
-	SensorNode u(instanceFileName, myId, shouldDebug, shouldDebugLevel);
+	//SensorNode u(instanceFileName, myId, shouldDebug, shouldDebugLevel);
 
 	/* Finalize the MPI environment. */
 	MPI_Finalize();

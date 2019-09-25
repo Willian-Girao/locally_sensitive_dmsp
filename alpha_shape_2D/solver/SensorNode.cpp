@@ -72,11 +72,11 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	mpiTimeDebuging = MPI_Wtime();
 
 	//Saving neighbor selection method chosen
-	// selected = GREEDY;
+	selected = GREEDY;
 	//selected = CONVEX_HULL;
-	selected = ALPHA_SHAPE;
+	//selected = ALPHA_SHAPE;
 
-	alphaValue = 7.798; //kroD100 radius
+	//alphaValue = 7.798; //kroD100 radius
 	//alphaValue = 5.78; //rat195 radius
 	//alphaValue = 20; //team2_201 radius
 	//alphaValue = 82.93; //team3_301 radius
@@ -84,7 +84,7 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 	//alphaValue = 19.910618; //rd400 radius
 	//alphaValue = 7.6; //pcb442 radius
 	//alphaValue = 27; //team6_501 radius
-	//alphaValue = 24.29218; //dsj1000 radius
+	alphaValue = 24.29218; //dsj1000 radius
 	//alphaValue = 12; //bonus1000 radius
 
 	//Progran execution starting now
@@ -204,59 +204,6 @@ SensorNode::SensorNode(string instanceFileName, int sensorId, bool shouldDebug, 
 
 	//Initially all neighbors are unattended
 	unattendedNeigbors = stoi(split_vector[0]);
-
-	//Calculating required shape - Convex-Hull | Alpha-Shape
-	switch (selected)
-	{
-		case CONVEX_HULL:
-			{
-				//Calculating Convex-hull on {u} U N(u) and saving to 'resultCGAL'
-				CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
-
-				if (debug && debugLevel == 3) 
-				{
-					cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
-				}
-				break;
-			}
-		case ALPHA_SHAPE:
-			{
-				//Calculating Alpha-shape on {u} U N(u)
-				Alpha_shape_2 alphaShape(pointsCGAL.begin(), pointsCGAL.end(), FT(1000), Alpha_shape_2::GENERAL);
-
-				//Alpha-shapes' alpha is set as the node transmission range (diameter)
-				alphaShape.set_alpha(alphaValue*2);
-
-				//Saving alpha-shapes boundary vertices to 'resultCGAL'
-				for (Alpha_shape_2::Alpha_shape_vertices_iterator it = alphaShape.Alpha_shape_vertices_begin(); it != alphaShape.Alpha_shape_vertices_end(); ++it)
-				{
-					Alpha_shape_2::Vertex_handle handle = *it;
-					Point_2 p = handle->point();
-
-					resultCGAL.push_back(p);
-				}
-
-				if (debug && debugLevel == 3)
-				{
-					// Returns an iterator pointing to the first element with α-value such that the alpha shape satisfies the following two properties:
-					// 	- All data points are either on the boundary or in the interior of the regularized version of the alpha shape.
-					// 	- The number of solid component of the alpha shape is equal to or smaller than nb_components.
-					// If no such value is found, the iterator points to the first element with α-value such that the alpha shape satisfies the second property.
-					cout << "My id: " << nodeId << " |  Alpha: " << alphaValue << endl;
-				}
-
-				break;
-			}
-		default:
-			//Convex-hull by default
-			CGAL::convex_hull_2( pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL) );
-
-			if (debug && debugLevel == 3)
-			{
-				cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull (default)" << endl;
-			}
-			break;
-	}
 
 	//Start sensor
 	initializeSensorNode();
@@ -691,6 +638,53 @@ void SensorNode::muleOn1stSensorStart(void) {
 	Correction: maybe this is due to the fact that 'no one will ask this node's number of unattended
 	nodes' (this is set to '0' already) - but still there might be msgs to be accounted for here still - validate with prof. Uéverton */
 
+	//Calculating geometrical shapes
+	switch (selected)
+	{
+		case CONVEX_HULL:
+		{
+			//Calculating Convex-hull on {u} U N(u) and saving to 'resultCGAL'
+			CGAL::convex_hull_2(pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL));
+
+			if (debug && debugLevel == 3)
+			{
+				cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
+			}
+			break;
+		}
+		case ALPHA_SHAPE:
+		{
+			//Calculating Alpha-shape on {u} U N(u)
+			Alpha_shape_2 alphaShape(pointsCGAL.begin(), pointsCGAL.end(), FT(1000), Alpha_shape_2::GENERAL);
+
+			//Alpha-shapes' alpha is set as the node transmission range (diameter)
+			alphaShape.set_alpha(alphaValue * 2);
+
+			//Saving alpha-shapes boundary vertices to 'resultCGAL'
+			for (Alpha_shape_2::Alpha_shape_vertices_iterator it = alphaShape.Alpha_shape_vertices_begin(); it != alphaShape.Alpha_shape_vertices_end(); ++it)
+			{
+				Alpha_shape_2::Vertex_handle handle = *it;
+				Point_2 p = handle->point();
+
+				resultCGAL.push_back(p);
+			}
+
+			if (debug && debugLevel == 3)
+			{
+				// Returns an iterator pointing to the first element with α-value such that the alpha shape satisfies the following two properties:
+				// 	- All data points are either on the boundary or in the interior of the regularized version of the alpha shape.
+				// 	- The number of solid component of the alpha shape is equal to or smaller than nb_components.
+				// If no such value is found, the iterator points to the first element with α-value such that the alpha shape satisfies the second property.
+				cout << "My id: " << nodeId << " |  Alpha: " << alphaValue << endl;
+			}
+
+			break;
+		}
+		default:
+			cout << "" << endl;
+			break;
+	}
+
 	//Reseting flag that marks the event of a N(u) having sent 'ACK_SERVED' back
 	resetNeigAckServedSentBackBuffer();
 
@@ -1048,6 +1042,53 @@ void SensorNode::msgSendMuleReceived(void) {
 	//Mule has arrived at me for the 1st time - INTRODUCED TO FIX ERROR_001 AND ERROR_001.1
 	if (!isMuleWithMe && !hasMuleBeenWithMe)
 	{
+		//Calculating geometrical shapes
+		switch (selected)
+		{
+			case CONVEX_HULL:
+			{
+				//Calculating Convex-hull on {u} U N(u) and saving to 'resultCGAL'
+				CGAL::convex_hull_2(pointsCGAL.begin(), pointsCGAL.end(), back_inserter(resultCGAL));
+
+				if (debug && debugLevel == 3)
+				{
+					cout << "My id: " << nodeId << " | " << resultCGAL.size() << " points on the convex hull" << endl;
+				}
+				break;
+			}
+			case ALPHA_SHAPE:
+			{
+				//Calculating Alpha-shape on {u} U N(u)
+				Alpha_shape_2 alphaShape(pointsCGAL.begin(), pointsCGAL.end(), FT(1000), Alpha_shape_2::GENERAL);
+
+				//Alpha-shapes' alpha is set as the node transmission range (diameter)
+				alphaShape.set_alpha(alphaValue * 2);
+
+				//Saving alpha-shapes boundary vertices to 'resultCGAL'
+				for (Alpha_shape_2::Alpha_shape_vertices_iterator it = alphaShape.Alpha_shape_vertices_begin(); it != alphaShape.Alpha_shape_vertices_end(); ++it)
+				{
+					Alpha_shape_2::Vertex_handle handle = *it;
+					Point_2 p = handle->point();
+
+					resultCGAL.push_back(p);
+				}
+
+				if (debug && debugLevel == 3)
+				{
+					// Returns an iterator pointing to the first element with α-value such that the alpha shape satisfies the following two properties:
+					// 	- All data points are either on the boundary or in the interior of the regularized version of the alpha shape.
+					// 	- The number of solid component of the alpha shape is equal to or smaller than nb_components.
+					// If no such value is found, the iterator points to the first element with α-value such that the alpha shape satisfies the second property.
+					cout << "My id: " << nodeId << " |  Alpha: " << alphaValue << endl;
+				}
+
+				break;
+			}
+			default:
+				cout << "" << endl;
+				break;
+		}
+
 		//Mule has just arrived, can serve me and my N(u) - thus no pendent neighbors to be served left
 		unattendedNeigbors = 0;
 
