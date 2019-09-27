@@ -37,5 +37,7 @@
 
 ### Run
 
-*mpirun -np **<num_process>** **./<compiled_file>***
+- *mpirun -np **<num_process>** **<compiled_file>***
+- *mpirun -np **<num_process>** --allow-run-as-root -mca btl sm,self **<compiled_file>***
+- *mpirun --mca btl self,sm,tcp -np **<num_process>** --allow-run-as-root **<compiled_file>***
 
