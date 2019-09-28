@@ -1,7 +1,7 @@
 # Experimental Methods Results
 Best results amongst the methods are shown in bold (both path length and # of messages exchanged). The shapes (hull and alpha) are calculated, at each node the mule passes through, using {u} U N(u) (called here **N'**): N' <span>&#x2287;</span> **convex-hull** <span>&#x2287;</span> **alpha-shape**. Thus, it is expected that the method based on the **convex-hull** of **N'** will have **solutions either as good as or worse than the method based on the greedy approach** (and will send less messages), while the method based on the  **<span>&#x3B1;</span>-shape** of **N'** will have **solutions either equal or better than the ones found by the convex-hull, but at most as good as the greedy approach** (with less messages than the greedy one, and a fewer more than the convex-hull one). 
 
-The experimental results listed bellow verifies this expected behavior. The **<span>&#x3B1;</span>** utilized to calculate the <span>&#x3B1;</span>-shape of N* equals the **diameter** of the node's communication range (same for all nodes within the same graph).
+The experimental results listed bellow verifies this expected behavior. The **<span>&#x3B1;</span>** utilized to calculate the <span>&#x3B1;</span>-shape of N' equals the **diameter** of the node's communication range (same for all nodes within the same graph).
 
 ## Mule Movements
 
