@@ -40,3 +40,7 @@ bonus1000 |   |   |
 As it can be seen both by the table above as well as the bar chart bellow, the <span>&#x3B1;</span>-shape method not only has advantages on the solution quality but also on the total count of messages sent, considering that it only increases this ammount by small percentage (roughly **1.3%** on average).
 
 ![](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/misc/plots/exchanged_msgs.png)
+
+## Conclusion
+
+For such combinatorial problems, like the one presented in this work, greedy methods can often be the most immediate approaches but, as the computational experiments have shown, other less intuitive ways of tackling the problem, such as considering spacial aspects regarding the sensor nodes for instance, can lead to improved performance without drastically impacting the final solution, which might be the desired scenario for many real-world problems.
