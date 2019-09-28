@@ -17,6 +17,7 @@ It is easy to see that, as *<span>&#x3B1;</span>* approaches 0, the <span>&#x3B1
 The instances utilized here come follows the following structure: the first line of the file gives out the **total number of nodes** within the network (modeled as a graph) as well as the sensor's communication range **radius**, followed by the sensors **coordinates** *(x, y)* separated from their respective **neighbors list** by an empty line (the first value corresponds to the total number of neighbors). An example of such instances is shown bellow, followed by its visual representation.
 
 ```cpp
+// Example graph
 6 r
 4 5.6
 5.3 4.2
@@ -40,6 +41,10 @@ This work considers the case where all the sensors within the network have the s
 
 - [With Acks](https://github.com/Willian-Girao/locally_sensitive_dmsp/tree/master/sensitive_dmsp_solver/results/README.md)
 - Without Acks
+
+## Source Codes
+
+The source code can be found [here](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/sensitive_dmsp_solver/README.md) along with instruction on how to compile and run it.
 
 ## References
 
