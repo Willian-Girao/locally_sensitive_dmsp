@@ -22,7 +22,7 @@ bonus1000 | X | X | X
 
 ## Messages Exchanged
 
-The outcome for the messaging too follows the expected behavior, considering the structure of the shapes. 
+The outcome for the messaging too follows the expected behavior, specially when considering the methods employing the shapes and how their construction correlates.
 
 instance  | Greedy | Convex-hull | <span>&#x3B1;</span>-shape
 --------------- | --------------- | ---------------| ---------------
@@ -36,5 +36,7 @@ pcb442 | 169902 | 164752 | 165554
 team6_501 | 312228 | 307380 | 308322
 dsj1000 | X | X | X 
 bonus1000 | X | X | X
+
+As it can be seen both by the table above as well as the bar chart bellow, the <span>&#x3B1;</span>-shape method not only has advantages on the solution quality but also on the total count of messages sent, considering that it only increases this ammount by *X%* on average.
 
 ![](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/misc/plots/exchanged_msgs.png)
