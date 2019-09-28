@@ -44,7 +44,7 @@ This work considers the case where all the sensors within the network have the s
 
 ## Source Codes
 
-The source code can be found [here](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/sensitive_dmsp_solver/README.md) along with instruction on how to compile and run it.
+The source code can be found [here](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/sensitive_dmsp_solver/README.md) along with instructions on needed dependencies as well as how to compile and run it.
 
 ## References
 
