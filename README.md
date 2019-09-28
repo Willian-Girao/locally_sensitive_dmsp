@@ -32,7 +32,7 @@ The instances utilized here come follows the following structure: the first line
 2 2 5
 2 3 4
 ```
-![](graph_example.png)
+![](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/misc/plots/graph_example.png)
 
 This work considers the case where all the sensors within the network have the same communication area. Sensor nodes *p* and *q* are said to be neighbors (e.g. vertices have an edge connecting them) if their communication range overlap.
 
