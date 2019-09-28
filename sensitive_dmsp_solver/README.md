@@ -5,7 +5,6 @@ For the following instruction it is assumed that the code will be executed on a 
 ## Dependencies
 
 - g++
-- cmake
 - libcgal-dev
 - openmpi-bin
 - libopenmpi-dev
