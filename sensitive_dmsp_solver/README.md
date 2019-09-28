@@ -2,7 +2,7 @@
 
 For the following instruction it is assumed that the code will be executed on a Linux environment.
 
-## Dependencies
+### Dependencies
 
 - **g++** (compiler)
 - **libcgal-dev** ([Computational Geometry Algorithm Library](https://www.cgal.org/))
