@@ -4,10 +4,9 @@ For the following instruction it is assumed that the code will be executed on a 
 
 ## Dependencies
 
-- g++
-- libcgal-dev
-- openmpi-bin
-- libopenmpi-dev
+- **g++** (compiler)
+- **libcgal-dev** ([Computational Geometry Algorithm Library](https://www.cgal.org/))
+- **openmpi-bin** and **libopenmpi-dev** ([openMPI](https://www.open-mpi.org/))
 
 ### Compile and Run
 
