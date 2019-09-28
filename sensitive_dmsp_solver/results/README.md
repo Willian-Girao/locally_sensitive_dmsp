@@ -35,4 +35,6 @@ rd400| 112638 | 108372 |109382
 pcb442 | 169902 | 164752 | 165554
 team6_501 | 312228 | 307380 | 308322
 dsj1000 | X | X | X 
-bonus1000 | X | X | X 
+bonus1000 | X | X | X
+
+![](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/misc/plots/exchanged_msgs.png)
