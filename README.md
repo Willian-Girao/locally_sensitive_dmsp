@@ -38,7 +38,7 @@ This work considers the case where all the sensors within the network have the s
 
 ## Results
 
-- [With Acks](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/alpha_shape_2D/solver/Results/README.md)
+- [With Acks](https://github.com/Willian-Girao/locally_sensitive_dmsp/tree/master/sensitive_dmsp_solver/results/README.md)
 - Without Acks
 
 ## References
