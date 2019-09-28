@@ -3,74 +3,36 @@ Best results amongst the methods are shown in bold (both path length and # of me
 
 The experimental results listed bellow verifies this expected behavior. The **<span>&#x3B1;</span>** utilized to calculate the <span>&#x3B1;</span>-shape of N* equals the **diameter** of the node's communication range (same for all nodes within the same graph).
 
-## Greedy
+## Mule Movements
 
-**Instance Name**  **Mule Steps**  **Messages Sent**
+As expected, the computational experiments show that the method based on the concept of <span>&#x3B1;</span>-shapes, in the worst case, have the same solutions as the convex-hull, while in some cases it is able to match the greedy solutions.
 
-kroD100  			 6        		   11084
+ instance  | Greedy | Convex-hull | <span>&#x3B1;</span>-shape
+--------------- | --------------- | ---------------| ---------------
+kroD100 | 6 | 6 | 6
+rat195 | 4 |  4  |  4 
+team2_201 | 10 | 12 | 10 
+team3_301 | 74 | 76 | 76 
+lin318 | 8 |  8 | 8 
+rd400 | 14  | 14 | 14
+pcb442 | 12 | 12 | 12
+team6_501 | 6 | 6 |  6
+dsj1000 | X | X | X 
+bonus1000 | X | X | X
 
-rat195 		   	 4       		    42990
+## Messages Exchanged
 
-team2_201    	10      		   30522
+The outcome for the messaging too follows the expected behavior, considering the structure of the shapes. 
 
-team3_301    	74      		   21446
-
-lin318            	  8      		    94218
-
-rd400             	14     		    112638
-
-pcb442          	12     		    169902
-
-team6_501          6     		    312228
-
-dsj1000				X     		    X
-
-bonus1000  		X     		    X
-
-## Convex-Hull
-
-**Instance Name**  **Mule Steps**  **Messages Sent**
-
-kroD100  			 6       		   10518
-
-rat195 		   	  4       		    42064
-
-team2_201    	 12      		   29002
-
-team3_301    	 76      		   19240
-
-lin318            	   8      		    91670
-
-rd400             	 14     		   108372
-
-pcb442          	 12     		   164752
-
-team6_501         6     		    307380
-
-dsj1000			  X     		    X
-
-bonus1000  	  X     		    X
-
-## <span>&#x3B1;</span>-Shape
-
-**Instance Name**  **Mule Steps**  **Messages Sent**
-
-kroD100  			 6        		   10634
-
-rat195 		   	  4       		     42206
-
-team2_201    	 10      		     30052
-
-team3_301    	 76      		    19552
-
-lin318            	   8      		     93706
-
-rd400             	 14     		     109382
-
-pcb442          	 12     		     165554
-
-team6_501          6     		      308322
-
-dsj1000				X     		    X
-
-bonus1000  		X     		    X
+instance  | Greedy | Convex-hull | <span>&#x3B1;</span>-shape
+--------------- | --------------- | ---------------| ---------------
+kroD100 | 11084 | 10518 | 10634
+rat195 | 42990 | 42064 |42206
+team2_201 |  30522 | 29002 | 30052
+team3_301 |  21446 | 19240 | 19552
+lin318 |  94218 |  91670 | 93706
+rd400| 112638 | 108372 |109382
+pcb442 | 169902 | 164752 | 165554
+team6_501 | 312228 | 307380 | 308322
+dsj1000 | X | X | X 
+bonus1000 | X | X | X 
