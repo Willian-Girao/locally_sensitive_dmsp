@@ -33,8 +33,8 @@
 
 ### Compile
 
-1. *mpicxx -c **SensorNode.cpp** -lCGAL -lgmp -frounding-math -o **<output_file_1>.o***
-2. *mpicxx -c **solver.cpp** -lCGAL -lgmp -frounding-math -o **<output_file_2>.o***
+1. mpicxx -c SensorNode.cpp -lCGAL -lgmp -frounding-math -o sensor.o
+2. mpicxx -c solver.cpp -lCGAL -lgmp -frounding-math -o main.o
 3. *mpicxx **<output_file_2>.o** **<output_file_1>.o** -lCGAL -lgmp -frounding-math -o **<compiled_file>***
 
 ### Run
