@@ -33,7 +33,7 @@
 
 ### Compile and Run
 
-´´´cpp
+```cpp
 mpicxx -c SensorNode.cpp -lCGAL -lgmp -frounding-math -o sensor.o && mpicxx -c solver.cpp -lCGAL -lgmp -frounding-math -o main.o && mpicxx main.o sensor.o -lCGAL -lgmp -frounding-math -o solver_exe && mpirun -np # -mca btl sm,self --allow-run-as-root solver_exe
-´´´
+```
 
