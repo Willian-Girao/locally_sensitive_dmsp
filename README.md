@@ -44,7 +44,11 @@ This work considers the case where all the sensors within the network have the s
 
 ## Source Codes
 
-The source code can be found [here](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/sensitive_dmsp_solver/README.md) along with instructions on needed dependencies as well as how to compile and run it.
+The code follows an Object Oriented programming paradigm where each node of is represented as an object of a class that encapsulates the sensor, where the knowledge of a sensor *u* (local sensibility) about the network topology is limited to its neighboring sensors listed on the instance file.
+
+In order to simulate a network of communicating and independet sensors the program utilizes a message sharing interface between processes, where each processe represents a sensor of the network.
+
+The source code files can be found [here](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/sensitive_dmsp_solver/README.md) along with instructions on needed dependencies as well as how to compile and run.
 
 ## References
 
