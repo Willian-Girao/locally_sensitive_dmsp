@@ -18,7 +18,7 @@ rd400 | 14  | 14 | 14
 pcb442 | 12 | 12 | 12
 team6_501 | 6 | 6 | 6
 dsj1000 | 8 | 10  | 10  
-bonus1000 |   |   |  
+bonus1000 |   |   | 22
 
 ## Messages Exchanged
 
@@ -35,7 +35,7 @@ rd400| 112638 | 108372 |109382
 pcb442 | 169902 | 164752 | 165554
 team6_501 | 312228 | 307380 | 308322
 dsj1000 | 837482 | 830320 |**830300** 
-bonus1000 |   |   |  
+bonus1000 |   |   | 441624
 
 As it can be seen both by the table above as well as the bar chart bellow, the <span>&#x3B1;</span>-shape method not only has advantages on the solution quality but also on the total count of messages sent, considering that it only increases this ammount by small percentage (roughly **1.3%** on average).
 
