@@ -11,14 +11,14 @@ As expected, the computational experiments show that the method based on the con
 --------------- | --------------- | ---------------| ---------------
 kroD100 | 6 | 6 | 6
 rat195 | 4 |  4  |  4 
-team2_201 | 10 | 12 | 10 
+team2_201 | **10** | 12 | **10**
 team3_301 | 74 | 76 | 76 
 lin318 | 8 |  8 | 8 
 rd400 | 14  | 14 | 14
 pcb442 | 12 | 12 | 12
 team6_501 | 6 | 6 | 6
 dsj1000 | 8 | 10  | 10  
-bonus1000 | 22 |   | 22
+bonus1000 | **22** | 26 | **22**
 
 ## Messages Exchanged
 
@@ -35,7 +35,7 @@ rd400| 112638 | 108372 |109382
 pcb442 | 169902 | 164752 | 165554
 team6_501 | 312228 | 307380 | 308322
 dsj1000 | 837482 | 830320 |**830300** 
-bonus1000 | 450624 |   | 441624
+bonus1000 | 450624 | 441258  | 441624
 
 As it can be seen both by the table above as well as the bar chart bellow, the <span>&#x3B1;</span>-shape method not only has advantages on the solution quality but also on the total count of messages sent, considering that it only increases this ammount by small percentage (roughly **1.3%** on average).
 
