@@ -11,7 +11,7 @@ As expected, the computational experiments show that the method based on the con
 
 As it can be seen both by the table above as well as the bar chart bellow, the <span>&#x3B1;</span>-shape method not only has advantages on the solution quality but also on the total count of messages sent, considering that it only increases this ammount by small percentage (roughly **1.3%** on average).
 
-![](https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/misc/plots/exchanged_msgs.png)
+/* CLASSIFIED RESULTS - WAITING PUBLICATION */
 
 ## Conclusion
 
