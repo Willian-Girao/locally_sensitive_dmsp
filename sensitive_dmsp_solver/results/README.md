@@ -23,7 +23,7 @@ bonus1000 | **22** | 26 | **22** |
 As it can be seen both by the table above as well as the bar chart bellow, the <span>&#x3B1;</span>-shape method not only has advantages on the solution quality but also on the total count of messages sent, considering that it only increases this ammount by small percentage (roughly **1.3%** on average).
 
 Instance  | Greedy | Convex-hull | <span>&#x3B1;</span>-shape
---------------- | --------------- | ---------------| ---------------
+:--------------- | :---------------: | :---------------:| :---------------:
 kroD100 | 11084 | 10518 | 10634
 rat195 | 42990 | 42064 |42206
 team2_201 |  30522 | 29002 | 30052
