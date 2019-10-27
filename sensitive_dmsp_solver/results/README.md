@@ -35,6 +35,10 @@ team6_501 | 312228 | 307380 | 308322
 dsj1000 | 837482 | 830320 |**830300** 
 bonus1000 | 450624 | 441258  | 441624
 
+<p align="center">
+  <img src="https://github.com/Willian-Girao/locally_sensitive_dmsp/blob/master/sensitive_dmsp_solver/results/gnuplot/ExchangedMessages.png" />
+</p>
+
 ## Conclusion
 
 For such combinatorial problems, like the one presented in this work, greedy methods can often be the most immediate approaches but, as the computational experiments have shown, other less intuitive ways of tackling the problem, such as considering spacial aspects regarding the sensor nodes for instance, can lead to improved performance without drastically impacting the final solution, which might be the desired scenario for many real-world problems.
