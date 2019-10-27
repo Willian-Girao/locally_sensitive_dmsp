@@ -6,8 +6,8 @@ The experimental results listed bellow verifies this expected behavior. The **<s
 ## Mule Movements
 
 As expected, the computational experiments show that the method based on the concept of <span>&#x3B1;</span>-shapes, in the worst case, have the same solutions as the convex-hull, while in some cases it is able to match the greedy solutions.
-
-<center>Instance  | Greedy | Convex-hull | <span>&#x3B1;</span>-shape
+<center>
+Instance  | Greedy | Convex-hull | <span>&#x3B1;</span>-shape
 :---------------|:---------------:|:---------------:|:---------------:|
 kroD100 | 6 | 6 | 6 |
 rat195 | 4 |  4  |  4 | 
@@ -18,7 +18,8 @@ rd400 | 14  | 14 | 14 |
 pcb442 | 12 | 12 | 12 |
 team6_501 | 6 | 6 | 6 |
 dsj1000 | 8 | 10  | 10 | 
-bonus1000 | **22** | 26 | **22** |</center>
+bonus1000 | **22** | 26 | **22** |
+</center>
 
 As it can be seen both by the table above as well as the bar chart bellow, the <span>&#x3B1;</span>-shape method not only has advantages on the solution quality but also on the total count of messages sent, considering that it only increases this ammount by small percentage (roughly **1.3%** on average).
 
