@@ -1,0 +1,14 @@
+red = "#FF0000"; blue = "#0000FF"; skyblue = "#87CEEB";
+set font "Arial,20"
+set style data histogram
+set style histogram cluster gap 1
+set style fill solid
+set xtics format ""
+set grid ytics
+set key left top
+
+set title "Exchanged Messages"
+
+plot "msgs.dat" using 2:xtic(1) title "Greedy" linecolor rgb red, \
+'' using 3 title "Convex-hull" linecolor rgb blue, \
+'' using 4 title "Alpha-shape" linecolor rgb skyblue
