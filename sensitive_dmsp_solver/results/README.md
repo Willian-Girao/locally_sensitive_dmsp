@@ -8,7 +8,7 @@ The experimental results listed bellow verifies this expected behavior. The **<s
 As expected, the computational experiments show that the method based on the concept of <span>&#x3B1;</span>-shapes, in the worst case, have the same solutions as the convex-hull, while in some cases it is able to match the greedy solutions.
 
 Instance  | Greedy | Convex-hull | <span>&#x3B1;</span>-shape
-:---------------:|:---------------:|:---------------:|:---------------:|
+:---------------|:---------------:|:---------------:|:---------------:|
 kroD100 | 6 | 6 | 6 |
 rat195 | 4 |  4  |  4 | 
 team2_201 | **10** | 12 | **10** |
